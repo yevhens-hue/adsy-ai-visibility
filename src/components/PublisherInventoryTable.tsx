@@ -86,7 +86,7 @@ export const KNOWN_ADSY_CATALOG: Record<string, { id: string; domain: string; ba
   'venturebeat.com': { id: 'pub-102', domain: 'venturebeat.com', basePrice: 650.00 },
   'forbes.com': { id: 'pub-108', domain: 'forbes.com', basePrice: 1250.00 },
   'techtimes.com': { id: 'pub-110', domain: 'techtimes.com', basePrice: 195.00 },
-  'business2community.com': { id: 'pub-105', domain: 'business2community.com', basePrice: 310.00 },
+  'business2community.com': { id: '18368', domain: 'business2community.com', basePrice: 2386.33 },
   'thestartupmag.com': { id: 'pub-104', domain: 'thestartupmag.com', basePrice: 120.00 },
   'contentmarketinginstitute.com': { id: 'pub-107', domain: 'contentmarketinginstitute.com', basePrice: 580.00 },
   'financebuzz.com': { id: 'pub-103', domain: 'financebuzz.com', basePrice: 240.00 },
@@ -174,7 +174,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-105',
+    id: '18368',
     domain: 'business2community.com',
     category: 'Marketing & Digital Strategy',
     country: 'US',
@@ -183,7 +183,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 76,
     traffic: '720,000',
     completionRate: '94%',
-    pricePlacement: 310.00,
+    pricePlacement: 2386.33,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
