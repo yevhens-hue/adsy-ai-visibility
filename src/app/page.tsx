@@ -330,8 +330,12 @@ export default function ControlPanelAIVisibilityPage() {
           seenInAi: true,
           citationsCount: typeof s.frequency === 'number' ? s.frequency : 6,
           relevantToGap: assignedGap,
-          aiOpportunity: 'High',
-          citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
+          aiOpportunity: (typeof s.frequency === 'number' && s.frequency >= 8) ? 'High' : 'Medium',
+          citedInEngines: (typeof s.frequency === 'number' && s.frequency >= 12)
+            ? ['ChatGPT', 'Perplexity', 'Claude']
+            : (typeof s.frequency === 'number' && s.frequency >= 6)
+              ? ['ChatGPT', 'Perplexity']
+              : ['Perplexity'],
         },
       };
     });

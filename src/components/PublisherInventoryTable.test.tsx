@@ -40,12 +40,28 @@ describe('PublisherInventoryTable', () => {
 
   it('filters to seen_in_ai publishers', () => {
     render(<PublisherInventoryTable publishersList={SAMPLE_PUBLISHERS} />);
-    const seenButton = screen.getByText('Seen in AI Sources');
+    const seenButton = screen.getByRole('button', { name: /Seen in AI Sources/i });
     fireEvent.click(seenButton);
     // thestartupmag is not seen in ai; ensure not in DOM
     expect(screen.queryByText('thestartupmag.com')).toBeNull();
     // techbullion is seen in ai; ensure still present
     expect(screen.getByText('techbullion.com')).toBeTruthy();
+  });
+
+  it('filters to High AI Opportunity publishers and Catalog Openings properly', () => {
+    render(<PublisherInventoryTable publishersList={SAMPLE_PUBLISHERS} />);
+    
+    // High AI Opportunity filter
+    const highButton = screen.getByRole('button', { name: /High AI Opportunity/i });
+    fireEvent.click(highButton);
+    expect(screen.getByText('forbes.com')).toBeTruthy();
+    expect(screen.queryByText('thestartupmag.com')).toBeNull();
+
+    // Catalog Openings filter
+    const catalogButton = screen.getByRole('button', { name: /Catalog Openings/i });
+    fireEvent.click(catalogButton);
+    expect(screen.getByText('thestartupmag.com')).toBeTruthy();
+    expect(screen.queryByText('forbes.com')).toBeNull();
   });
 
   it('generates choose-product URL for numeric ID and domain-prefilled search URL otherwise', () => {

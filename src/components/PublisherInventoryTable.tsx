@@ -128,6 +128,25 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
+    id: 'pub-110',
+    domain: 'techtimes.com',
+    category: 'Consumer Tech & Emerging Trends',
+    country: 'US',
+    language: 'English',
+    dr: 76,
+    da: 62,
+    traffic: '410,000',
+    completionRate: '97%',
+    pricePlacement: 195.00,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'Brand Awareness & Executive Visibility',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
+    },
+  },
+  {
     id: 'pub-105',
     domain: 'business2community.com',
     category: 'Marketing & Digital Strategy',
@@ -163,6 +182,25 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
       relevantToGap: 'SEO Performance & Search Authority',
       aiOpportunity: 'High',
       citedInEngines: ['ChatGPT', 'Perplexity'],
+    },
+  },
+  {
+    id: 'pub-111',
+    domain: 'techtarget.com',
+    category: 'Enterprise IT & Search Infrastructure',
+    country: 'US',
+    language: 'English',
+    dr: 88,
+    da: 82,
+    traffic: '1,800,000',
+    completionRate: '96%',
+    pricePlacement: 490.00,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'SEO Performance & Search Authority',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
     },
   },
   {
@@ -204,6 +242,25 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
+    id: 'pub-112',
+    domain: 'copyblogger.com',
+    category: 'Content Writing & Copy Strategy',
+    country: 'US',
+    language: 'English',
+    dr: 81,
+    da: 72,
+    traffic: '280,000',
+    completionRate: '98%',
+    pricePlacement: 275.00,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'Content Quality & Execution Guides',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
+    },
+  },
+  {
     id: 'pub-103',
     domain: 'financebuzz.com',
     category: 'Finance, Banking & SaaS',
@@ -218,8 +275,27 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
       seenInAi: true,
       citationsCount: 3,
       relevantToGap: 'Cost Efficiency & ROI Benchmarks',
-      aiOpportunity: 'High',
+      aiOpportunity: 'Medium',
       citedInEngines: ['Perplexity'],
+    },
+  },
+  {
+    id: 'pub-113',
+    domain: 'benzinga.com',
+    category: 'Financial Markets, Trading & Software',
+    country: 'US',
+    language: 'English',
+    dr: 85,
+    da: 79,
+    traffic: '4,200,000',
+    completionRate: '95%',
+    pricePlacement: 380.00,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'Cost Efficiency & ROI Benchmarks',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
     },
   },
 ];
@@ -300,8 +376,31 @@ export default function PublisherInventoryTable({
 }: PublisherInventoryTableProps) {
   const [publishers, setPublishers] = useState<VerifiedPublisher[]>(publishersList || SAMPLE_PUBLISHERS);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity' | 'medium_opportunity'>('all');
   const [filterStrictByGap, setFilterStrictByGap] = useState<boolean>(true);
+
+  // 1. Calculate matching publishers based on gap filter
+  const gapFilteredPublishers = React.useMemo(() => {
+    if (selectedGapTopic && filterStrictByGap) {
+      return publishers.filter((p) => computeGapRelevance(p, selectedGapTopic).isMatch);
+    }
+    return publishers;
+  }, [publishers, selectedGapTopic, filterStrictByGap]);
+
+  // 2. Exact dynamic counts for filter buttons
+  const countAll = gapFilteredPublishers.length;
+  const countSeenInAi = React.useMemo(
+    () => gapFilteredPublishers.filter((p) => Boolean(p.aiVisibility?.seenInAi)).length,
+    [gapFilteredPublishers]
+  );
+  const countHighOpp = React.useMemo(
+    () => gapFilteredPublishers.filter((p) => p.aiVisibility?.aiOpportunity === 'High').length,
+    [gapFilteredPublishers]
+  );
+  const countMediumOpp = React.useMemo(
+    () => gapFilteredPublishers.filter((p) => p.aiVisibility?.aiOpportunity === 'Medium' || !p.aiVisibility?.seenInAi).length,
+    [gapFilteredPublishers]
+  );
 
   const gapMatchesCount = React.useMemo(() => {
     if (!selectedGapTopic) return 0;
@@ -339,15 +438,20 @@ export default function PublisherInventoryTable({
     });
   };
 
-  const filteredPublishers = publishers.filter((p) => {
-    if (activeFilter === 'seen_in_ai' && !p.aiVisibility?.seenInAi) return false;
-    if (activeFilter === 'high_opportunity' && p.aiVisibility?.aiOpportunity !== 'High') return false;
-    if (selectedGapTopic && filterStrictByGap) {
-      const relevance = computeGapRelevance(p, selectedGapTopic);
-      if (!relevance.isMatch) return false;
-    }
-    return true;
-  });
+  const filteredPublishers = React.useMemo(() => {
+    return gapFilteredPublishers.filter((p) => {
+      if (activeFilter === 'seen_in_ai') {
+        return Boolean(p.aiVisibility?.seenInAi);
+      }
+      if (activeFilter === 'high_opportunity') {
+        return p.aiVisibility?.aiOpportunity === 'High';
+      }
+      if (activeFilter === 'medium_opportunity') {
+        return p.aiVisibility?.aiOpportunity === 'Medium' || !p.aiVisibility?.seenInAi;
+      }
+      return true;
+    });
+  }, [gapFilteredPublishers, activeFilter]);
 
   // Sort highlighted domain to top, followed by gap score relevance
   const sortedPublishers = [...filteredPublishers].sort((a, b) => {
@@ -402,25 +506,68 @@ export default function PublisherInventoryTable({
             Filter by AI Signals:
           </span>
           <button 
+            type="button"
             onClick={() => setActiveFilter('all')}
-            className={`badge-adsy-pill ${activeFilter === 'all' ? 'badge-ai-blue' : ''}`}
-            style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+            className="badge-adsy-pill"
+            style={{ 
+              cursor: 'pointer', 
+              background: activeFilter === 'all' ? '#1E40AF' : '#F8FAFC',
+              color: activeFilter === 'all' ? '#FFFFFF' : '#334155',
+              border: activeFilter === 'all' ? '1px solid #1E40AF' : '1px solid var(--adsy-border)',
+              fontWeight: activeFilter === 'all' ? 700 : 500,
+              padding: '6px 12px',
+              transition: 'all 0.15s ease'
+            }}
           >
-            All Available ({publishers.length})
+            All Available ({countAll})
           </button>
           <button 
+            type="button"
             onClick={() => setActiveFilter('seen_in_ai')}
-            className={`badge-adsy-pill ${activeFilter === 'seen_in_ai' ? 'badge-ai-green' : ''}`}
-            style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+            className="badge-adsy-pill"
+            style={{ 
+              cursor: 'pointer', 
+              background: activeFilter === 'seen_in_ai' ? '#166534' : '#F8FAFC',
+              color: activeFilter === 'seen_in_ai' ? '#FFFFFF' : '#334155',
+              border: activeFilter === 'seen_in_ai' ? '1px solid #166534' : '1px solid var(--adsy-border)',
+              fontWeight: activeFilter === 'seen_in_ai' ? 700 : 500,
+              padding: '6px 12px',
+              transition: 'all 0.15s ease'
+            }}
           >
-            Seen in AI Sources
+            Seen in AI Sources ({countSeenInAi})
           </button>
           <button 
+            type="button"
             onClick={() => setActiveFilter('high_opportunity')}
-            className={`badge-adsy-pill ${activeFilter === 'high_opportunity' ? 'badge-ai-purple' : ''}`}
-            style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+            className="badge-adsy-pill"
+            style={{ 
+              cursor: 'pointer', 
+              background: activeFilter === 'high_opportunity' ? '#6B21A8' : '#F8FAFC',
+              color: activeFilter === 'high_opportunity' ? '#FFFFFF' : '#334155',
+              border: activeFilter === 'high_opportunity' ? '1px solid #6B21A8' : '1px solid var(--adsy-border)',
+              fontWeight: activeFilter === 'high_opportunity' ? 700 : 500,
+              padding: '6px 12px',
+              transition: 'all 0.15s ease'
+            }}
           >
-            High AI Opportunity
+            High AI Opportunity ({countHighOpp})
+          </button>
+          <button 
+            type="button"
+            onClick={() => setActiveFilter('medium_opportunity')}
+            className="badge-adsy-pill"
+            style={{ 
+              cursor: 'pointer', 
+              background: activeFilter === 'medium_opportunity' ? '#D97706' : '#F8FAFC',
+              color: activeFilter === 'medium_opportunity' ? '#FFFFFF' : '#334155',
+              border: activeFilter === 'medium_opportunity' ? '1px solid #D97706' : '1px solid var(--adsy-border)',
+              fontWeight: activeFilter === 'medium_opportunity' ? 700 : 500,
+              padding: '6px 12px',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            Catalog Openings ({countMediumOpp})
           </button>
         </div>
 
@@ -462,8 +609,28 @@ export default function PublisherInventoryTable({
             </tr>
           </thead>
           <tbody>
-            {sortedPublishers.map((pub) => {
-              const isFav = favorites.has(pub.id);
+            {sortedPublishers.length === 0 ? (
+              <tr>
+                <td colSpan={10} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--adsy-text-secondary)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--adsy-text-dark)', marginBottom: '6px' }}>
+                    No publishers match the selected filter combination
+                  </div>
+                  <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                    Active AI Signal filter: <strong>{activeFilter}</strong>. Total available in this view: <strong>{countAll}</strong>.
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => { setActiveFilter('all'); setFilterStrictByGap(false); }}
+                    className="btn-adsy-blue"
+                    style={{ fontSize: '12px', padding: '6px 14px' }}
+                  >
+                    Reset All Filters
+                  </button>
+                </td>
+              </tr>
+            ) : (
+              sortedPublishers.map((pub) => {
+                const isFav = favorites.has(pub.id);
               const isHighlighted = highlightedDomain && pub.domain.toLowerCase() === highlightedDomain.toLowerCase();
               const priceDisplay = typeof pub.pricePlacement === 'number' && !isNaN(pub.pricePlacement)
                 ? `$${pub.pricePlacement.toFixed(2)}`
@@ -584,7 +751,7 @@ export default function PublisherInventoryTable({
                   </td>
                 </tr>
               );
-            })}
+            }))}
           </tbody>
         </table>
       </div>
