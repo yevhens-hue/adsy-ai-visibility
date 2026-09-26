@@ -18,17 +18,12 @@ import {
   Layers,
   Globe,
   SlidersHorizontal,
-  FileText,
   Clock,
   ChevronRight,
-  UserCheck,
-  UserX,
   Plus,
   Trash2,
   GitCompare,
-  Filter,
-  Eye,
-  Info
+  Filter
 } from 'lucide-react';
 import { PublicCheckSummary, FullCheckReport, CheckRun, CheckPrompt, RunComparisonDiff } from '@/types';
 import { compareCheckRuns } from '@/lib/checker';
@@ -243,62 +238,14 @@ export default function ControlPanelAIVisibilityPage() {
 
         {/* Main Content Viewport */}
         <main className="cp-main">
-          {/* Breadcrumb Header with User Mode Switcher */}
+          {/* Breadcrumb */}
           <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--adsy-text-secondary)' }}>
-                <span>Marketer</span>
-                <ChevronRight size={12} />
-                <span>AI Intelligence</span>
-                <ChevronRight size={12} />
-                <strong style={{ color: 'var(--adsy-text-dark)' }}>AI Visibility & Search</strong>
-              </div>
-
-              {/* Mode Switcher (Guest vs Authorized Adsy Client) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#FFFFFF', border: '1px solid var(--adsy-border)', borderRadius: '20px', padding: '3px 6px' }}>
-                <button
-                  onClick={() => {
-                    setUserMode('marketer');
-                    handleRunAnalysis(url, true);
-                  }}
-                  style={{
-                    border: 'none',
-                    background: userMode === 'marketer' ? 'var(--adsy-blue)' : 'transparent',
-                    color: userMode === 'marketer' ? '#FFFFFF' : 'var(--adsy-text-secondary)',
-                    borderRadius: '16px',
-                    padding: '4px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <UserCheck size={12} /> Authorized Marketer (15 Prompts)
-                </button>
-                <button
-                  onClick={() => {
-                    setUserMode('guest');
-                    handleRunAnalysis(url, false);
-                  }}
-                  style={{
-                    border: 'none',
-                    background: userMode === 'guest' ? 'var(--adsy-blue)' : 'transparent',
-                    color: userMode === 'guest' ? '#FFFFFF' : 'var(--adsy-text-secondary)',
-                    borderRadius: '16px',
-                    padding: '4px 10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <UserX size={12} /> Guest Mode (5 Prompts / Blurred)
-                </button>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--adsy-text-secondary)', marginBottom: '8px' }}>
+              <span>Marketer</span>
+              <ChevronRight size={12} />
+              <span>AI Intelligence</span>
+              <ChevronRight size={12} />
+              <strong style={{ color: 'var(--adsy-text-dark)' }}>AI Visibility & Search</strong>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
@@ -311,16 +258,14 @@ export default function ControlPanelAIVisibilityPage() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <a 
-                  href="https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-adsy-outline"
-                >
-                  <ExternalLink size={14} /> Open Live Adsy CP
-                </a>
-              </div>
+              <a 
+                href="https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-adsy-outline"
+              >
+                <ExternalLink size={14} /> Open Live Adsy CP
+              </a>
             </div>
           </div>
 
@@ -349,7 +294,7 @@ export default function ControlPanelAIVisibilityPage() {
                 gap: '8px'
               }}
             >
-              <Sparkles size={16} /> AI Visibility Checker {userMode === 'marketer' ? '(Full Report)' : '(Public)'}
+              <Sparkles size={16} /> AI Visibility Checker
             </button>
 
             <button
@@ -432,17 +377,15 @@ export default function ControlPanelAIVisibilityPage() {
                       <span>English</span>
                     </div>
 
-                    {/* Configure Prompts & Competitors Button (Section 2.2 TZ) */}
-                    {userMode === 'marketer' && (
-                      <button
-                        type="button"
-                        onClick={() => setShowConfigDrawer(!showConfigDrawer)}
-                        className="btn-adsy-outline"
-                        style={{ padding: '9px 14px', fontSize: '13px' }}
-                      >
-                        <SlidersHorizontal size={14} /> Config ({customCompetitors.length} comps)
-                      </button>
-                    )}
+                    {/* Configure Prompts & Competitors Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowConfigDrawer(!showConfigDrawer)}
+                      className="btn-adsy-outline"
+                      style={{ padding: '9px 14px', fontSize: '13px' }}
+                    >
+                      <SlidersHorizontal size={14} /> Config ({customCompetitors.length} comps)
+                    </button>
 
                     {/* Check Action Button */}
                     <button
@@ -451,36 +394,26 @@ export default function ControlPanelAIVisibilityPage() {
                       className="btn-adsy-green"
                       style={{ padding: '10px 20px', fontSize: '14px' }}
                     >
-                      <Sparkles size={16} /> 
-                      {loading ? 'Analyzing AI...' : userMode === 'marketer' ? 'Run Full Analysis' : 'Check AI Visibility'}
+                      <Sparkles size={16} />
+                      {loading ? 'Analyzing AI...' : 'Run Full Analysis'}
                     </button>
                   </div>
 
-                  {/* Quick Domain Presets */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', fontSize: '12px', color: 'var(--adsy-text-secondary)' }}>
-                    <div style={{ display: 'flex', gap: '16px' }}>
-                      <span>Mode: <strong>{userMode === 'marketer' ? 'Pro 15-Prompt Audit' : 'Free Public 5-Prompt'}</strong></span>
-                      <span>Engines: <strong>ChatGPT, Perplexity, Claude</strong> ({userMode === 'marketer' ? '45' : '15'} queries)</span>
-                      <span>Monthly quota: <strong style={{ color: quotaRemaining === 0 ? '#DC2626' : quotaRemaining === 1 ? '#F59E0B' : 'inherit' }}>{quotaRemaining}/{QUOTA_MAX} remaining</strong></span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <span onClick={() => { setUrl('monday.com'); handleRunAnalysis('monday.com'); }} style={{ color: 'var(--adsy-blue)', cursor: 'pointer', fontWeight: 600 }}>Try monday.com</span>
-                      <span>•</span>
-                      <span onClick={() => { setUrl('hubspot.com'); handleRunAnalysis('hubspot.com'); }} style={{ color: 'var(--adsy-blue)', cursor: 'pointer', fontWeight: 600 }}>Try hubspot.com</span>
-                      <span>•</span>
-                      <span onClick={() => { setUrl('ahrefs.com'); handleRunAnalysis('ahrefs.com'); }} style={{ color: 'var(--adsy-blue)', cursor: 'pointer', fontWeight: 600 }}>Try ahrefs.com</span>
-                    </div>
+                  {/* Status bar */}
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '10px', fontSize: '12px', color: 'var(--adsy-text-secondary)' }}>
+                    <span>Engines: <strong>ChatGPT, Perplexity, Claude</strong> — 45 queries</span>
+                    <span>Monthly quota: <strong style={{ color: quotaRemaining === 0 ? '#DC2626' : quotaRemaining === 1 ? '#F59E0B' : 'inherit' }}>{quotaRemaining}/{QUOTA_MAX} remaining</strong></span>
                   </div>
                 </form>
 
                 {/* Configuration Drawer for Custom Prompts & Competitors */}
-                {showConfigDrawer && userMode === 'marketer' && (
+                {showConfigDrawer && (
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed var(--adsy-border)' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       {/* Competitors List */}
                       <div>
                         <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--adsy-text-dark)', marginBottom: '8px' }}>
-                          Target Competitors to Benchmark (Section 2.2 TZ)
+                          Target Competitors to Benchmark
                         </h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
                           {customCompetitors.map((comp, idx) => (
