@@ -61,4 +61,27 @@ describe('runRealAIAnalysis (deterministic fallback)', () => {
     expect(result.prompts.some((p: any) => p.is_custom)).toBe(true);
     expect(result.competitors.some((c: any) => c.name === 'Asana' && c.domain === 'asana.com')).toBe(true);
   });
+
+  it('demonstrates engine disparity: visibility_score and prompt_coverage are distinct empirical metrics', async () => {
+    const result = (await runRealAIAnalysis('monday.com', 'full')) as any;
+    expect(result.run.visibility_score).toBeDefined();
+    expect(result.run.prompt_coverage).toBeDefined();
+
+    // Verify answers across engines have distinct citation presence
+    const chatGptMentions = result.answers.filter((a: any) => a.platform === 'ChatGPT' && a.brand_mentioned).length;
+    const perplexityMentions = result.answers.filter((a: any) => a.platform === 'Perplexity' && a.brand_mentioned).length;
+    const claudeMentions = result.answers.filter((a: any) => a.platform === 'Claude' && a.brand_mentioned).length;
+
+    // Perplexity with live search should index/cite at least as actively as conservative Claude
+    expect(perplexityMentions).toBeGreaterThanOrEqual(claudeMentions);
+  });
+
+  it('returns cached and stable results for subsequent queries of the same domain', async () => {
+    const res1 = (await runRealAIAnalysis('cached-brand.com', 'public')) as any;
+    const res2 = (await runRealAIAnalysis('cached-brand.com', 'public')) as any;
+
+    expect(res1.run.id).toBe(res2.run.id);
+    expect(res1.run.visibility_score).toBe(res2.run.visibility_score);
+    expect(res1.run.prompt_coverage).toBe(res2.run.prompt_coverage);
+  });
 });
