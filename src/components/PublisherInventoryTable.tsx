@@ -62,7 +62,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     aiVisibility: {
       seenInAi: true,
       citationsCount: 4,
-      relevantToGap: 'Enterprise Workflow Solutions Comparison',
+      relevantToGap: 'Brand Awareness & Executive Visibility',
       aiOpportunity: 'High',
       citedInEngines: ['ChatGPT', 'Perplexity'],
     },
@@ -81,9 +81,104 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     aiVisibility: {
       seenInAi: true,
       citationsCount: 7,
-      relevantToGap: 'Enterprise Workflow Solutions Comparison',
+      relevantToGap: 'Brand Awareness & Executive Visibility',
       aiOpportunity: 'High',
       citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
+    },
+  },
+  {
+    id: 'pub-108',
+    domain: 'forbes.com',
+    category: 'Global Business, Leadership & Tech',
+    country: 'US',
+    language: 'English',
+    dr: 94,
+    da: 92,
+    traffic: '32,000,000',
+    completionRate: '92%',
+    pricePlacement: 1250.00,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 15,
+      relevantToGap: 'Brand Awareness & Executive Visibility',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
+    },
+  },
+  {
+    id: 'pub-105',
+    domain: 'business2community.com',
+    category: 'Marketing & Digital Strategy',
+    country: 'US',
+    language: 'English',
+    dr: 84,
+    da: 76,
+    traffic: '720,000',
+    completionRate: '94%',
+    pricePlacement: 310.00,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 5,
+      relevantToGap: 'SEO Performance & Search Authority',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Claude'],
+    },
+  },
+  {
+    id: 'pub-106',
+    domain: 'searchenginewatch.com',
+    category: 'SEO & Search Engine Marketing',
+    country: 'US',
+    language: 'English',
+    dr: 87,
+    da: 80,
+    traffic: '650,000',
+    completionRate: '96%',
+    pricePlacement: 420.00,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 6,
+      relevantToGap: 'SEO Performance & Search Authority',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity'],
+    },
+  },
+  {
+    id: 'pub-104',
+    domain: 'thestartupmag.com',
+    category: 'Startups & Productivity Tools',
+    country: 'US',
+    language: 'English',
+    dr: 65,
+    da: 58,
+    traffic: '85,000',
+    completionRate: '99%',
+    pricePlacement: 120.00,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'Content Quality & Execution Guides',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
+    },
+  },
+  {
+    id: 'pub-107',
+    domain: 'contentmarketinginstitute.com',
+    category: 'Content Marketing & Editorial Quality',
+    country: 'US',
+    language: 'English',
+    dr: 89,
+    da: 82,
+    traffic: '890,000',
+    completionRate: '97%',
+    pricePlacement: 580.00,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 8,
+      relevantToGap: 'Content Quality & Execution Guides',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Claude', 'Perplexity'],
     },
   },
   {
@@ -105,45 +200,52 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
       citedInEngines: ['Perplexity'],
     },
   },
-  {
-    id: 'pub-104',
-    domain: 'thestartupmag.com',
-    category: 'Startups & Productivity Tools',
-    country: 'US',
-    language: 'English',
-    dr: 65,
-    da: 58,
-    traffic: '85,000',
-    completionRate: '99%',
-    pricePlacement: 120.00,
-    aiVisibility: {
-      seenInAi: false,
-      citationsCount: 0,
-      relevantToGap: 'Cost Efficiency & ROI Benchmarks',
-      aiOpportunity: 'Medium',
-      citedInEngines: [],
-    },
-  },
-  {
-    id: 'pub-105',
-    domain: 'business2community.com',
-    category: 'Marketing & Digital Strategy',
-    country: 'US',
-    language: 'English',
-    dr: 84,
-    da: 76,
-    traffic: '720,000',
-    completionRate: '94%',
-    pricePlacement: 310.00,
-    aiVisibility: {
-      seenInAi: true,
-      citationsCount: 5,
-      relevantToGap: 'Enterprise Workflow Solutions Comparison',
-      aiOpportunity: 'High',
-      citedInEngines: ['ChatGPT', 'Claude'],
-    },
-  },
 ];
+
+export function computeGapRelevance(pub: VerifiedPublisher, gapTopic?: string): { isMatch: boolean; score: number; reason: string } {
+  if (!gapTopic || !gapTopic.trim()) {
+    return { isMatch: true, score: 1, reason: 'All Inventory' };
+  }
+  const cleanGap = gapTopic.toLowerCase();
+  const cat = (pub.category || '').toLowerCase();
+  const dom = (pub.domain || '').toLowerCase();
+  const gapField = (pub.aiVisibility?.relevantToGap || '').toLowerCase();
+
+  // 1. Direct match on relevantToGap field
+  if (gapField.includes(cleanGap) || cleanGap.includes(gapField)) {
+    return { isMatch: true, score: 10, reason: `Targeted for ${gapTopic}` };
+  }
+
+  // 2. Brand Awareness / Recognition / Leadership cluster
+  if (cleanGap.includes('brand') || cleanGap.includes('aware') || cleanGap.includes('recogni') || cleanGap.includes('prominen') || cleanGap.includes('top guest') || cleanGap.includes('who are')) {
+    if (gapField.includes('brand') || cat.includes('business') || cat.includes('leadership') || cat.includes('enterprise') || dom.includes('techbullion') || dom.includes('venturebeat') || dom.includes('forbes') || pub.dr >= 85) {
+      return { isMatch: true, score: 9, reason: 'High-DR Brand Authority' };
+    }
+  }
+
+  // 3. SEO Performance / Search Authority / Ranking cluster
+  if (cleanGap.includes('seo') || cleanGap.includes('search') || cleanGap.includes('rank') || cleanGap.includes('backlink') || cleanGap.includes('performance') || cleanGap.includes('traffic')) {
+    if (gapField.includes('seo') || cat.includes('seo') || cat.includes('marketing') || cat.includes('digital') || dom.includes('business2community') || dom.includes('searchenginewatch')) {
+      return { isMatch: true, score: 9, reason: 'SEO & Search Authority Media' };
+    }
+  }
+
+  // 4. Content Quality / Editorial / Guides / Execution cluster
+  if (cleanGap.includes('content') || cleanGap.includes('qualit') || cleanGap.includes('process') || cleanGap.includes('guide') || cleanGap.includes('measure') || cleanGap.includes('editorial')) {
+    if (gapField.includes('content') || cat.includes('content') || cat.includes('startup') || cat.includes('productivity') || cat.includes('editorial') || dom.includes('thestartupmag') || dom.includes('contentmarketinginstitute')) {
+      return { isMatch: true, score: 9, reason: 'Content Architecture & Guides' };
+    }
+  }
+
+  // 5. Cost / Pricing / ROI cluster
+  if (cleanGap.includes('cost') || cleanGap.includes('roi') || cleanGap.includes('price') || cleanGap.includes('pricing') || cleanGap.includes('financial') || cleanGap.includes('budget')) {
+    if (gapField.includes('cost') || cat.includes('finance') || cat.includes('saas') || cat.includes('banking') || dom.includes('financebuzz')) {
+      return { isMatch: true, score: 9, reason: 'Financial & ROI Benchmarks' };
+    }
+  }
+
+  return { isMatch: false, score: 0, reason: 'General Catalog Media' };
+}
 
 interface PublisherInventoryTableProps {
   selectedGapTopic?: string;
@@ -165,6 +267,7 @@ export default function PublisherInventoryTable({
   const [publishers, setPublishers] = useState<VerifiedPublisher[]>(publishersList || SAMPLE_PUBLISHERS);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity'>('all');
+  const [filterStrictByGap, setFilterStrictByGap] = useState<boolean>(true);
 
   React.useEffect(() => {
     if (publishersList && publishersList.length > 0) {
@@ -200,16 +303,25 @@ export default function PublisherInventoryTable({
   const filteredPublishers = publishers.filter((p) => {
     if (activeFilter === 'seen_in_ai' && !p.aiVisibility?.seenInAi) return false;
     if (activeFilter === 'high_opportunity' && p.aiVisibility?.aiOpportunity !== 'High') return false;
+    if (selectedGapTopic && filterStrictByGap) {
+      const relevance = computeGapRelevance(p, selectedGapTopic);
+      if (!relevance.isMatch) return false;
+    }
     return true;
   });
 
-  // Sort highlighted domain to the very top if set
+  // Sort highlighted domain to top, followed by gap score relevance
   const sortedPublishers = [...filteredPublishers].sort((a, b) => {
     if (highlightedDomain) {
       const aMatch = a.domain.toLowerCase() === highlightedDomain.toLowerCase();
       const bMatch = b.domain.toLowerCase() === highlightedDomain.toLowerCase();
       if (aMatch && !bMatch) return -1;
       if (!aMatch && bMatch) return 1;
+    }
+    if (selectedGapTopic) {
+      const scoreA = computeGapRelevance(a, selectedGapTopic).score;
+      const scoreB = computeGapRelevance(b, selectedGapTopic).score;
+      if (scoreA !== scoreB) return scoreB - scoreA;
     }
     return 0;
   });
@@ -246,7 +358,7 @@ export default function PublisherInventoryTable({
           borderRadius: '8px'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--adsy-text-dark)' }}>
             Filter by AI Signals:
           </span>
@@ -255,7 +367,7 @@ export default function PublisherInventoryTable({
             className={`badge-adsy-pill ${activeFilter === 'all' ? 'badge-ai-blue' : ''}`}
             style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
           >
-            All Verified ({publishers.length})
+            All Available ({publishers.length})
           </button>
           <button 
             onClick={() => setActiveFilter('seen_in_ai')}
@@ -274,11 +386,21 @@ export default function PublisherInventoryTable({
         </div>
 
         {selectedGapTopic && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-            <span style={{ color: 'var(--adsy-text-secondary)' }}>Active Strategy Gap:</span>
-            <span className="badge-adsy-pill badge-ai-purple">
-              {selectedGapTopic}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+              <span style={{ color: 'var(--adsy-text-secondary)' }}>Targeted Gap:</span>
+              <span className="badge-adsy-pill badge-ai-purple" style={{ fontWeight: 700 }}>
+                {selectedGapTopic} ({sortedPublishers.length} matching)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFilterStrictByGap(!filterStrictByGap)}
+              className="btn-adsy-outline"
+              style={{ fontSize: '11px', padding: '3px 8px', background: filterStrictByGap ? '#FFFFFF' : '#EFF6FF' }}
+            >
+              {filterStrictByGap ? 'Show All Catalog' : 'Filter by Gap Only'}
+            </button>
           </div>
         )}
       </div>
@@ -371,6 +493,15 @@ export default function PublisherInventoryTable({
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {selectedGapTopic && (
+                        <span 
+                          className="badge-adsy-pill" 
+                          style={{ background: '#EEF2FF', color: '#3730A3', fontWeight: 700, fontSize: '10px' }}
+                          title={`Strategic reason: ${computeGapRelevance(pub, selectedGapTopic).reason}`}
+                        >
+                          {computeGapRelevance(pub, selectedGapTopic).reason}
+                        </span>
+                      )}
                       {pub.aiVisibility?.seenInAi ? (
                         <span className="badge-adsy-pill badge-ai-green">
                           <CheckCircle2 size={11} /> Seen in AI ({enginesText})

@@ -293,6 +293,22 @@ export default function ControlPanelAIVisibilityPage() {
       const traffic = `${((hash % 900) + 140).toLocaleString()},000`;
       const completionRate = `${95 + (hash % 5)}%`;
 
+      // Match source to the specific gap where its citations were observed, or round-robin across available gaps
+      let assignedGap = 'Strategic Market Visibility';
+      if (currentGaps && currentGaps.length > 0) {
+        const promptMap = new Map((fullReport.prompts || []).map(p => [p.id, p.text]));
+        const gapMatch = currentGaps.find(g => 
+          g.prompts_list?.some(pText => {
+            const ans = fullReport.answers?.find(a => {
+              const pStr = promptMap.get(a.prompt_id);
+              return (pStr === pText || (a as any).prompt_text === pText) && a.citations?.some(c => c.toLowerCase().includes(s.domain.toLowerCase()));
+            });
+            return !!ans;
+          })
+        );
+        assignedGap = gapMatch ? gapMatch.topic : currentGaps[idx % currentGaps.length].topic;
+      }
+
       return {
         id: s.adsy_publisher_id || `pub-rep-${idx}-${s.domain}`,
         domain: s.domain,
@@ -307,7 +323,7 @@ export default function ControlPanelAIVisibilityPage() {
         aiVisibility: {
           seenInAi: true,
           citationsCount: typeof s.frequency === 'number' ? s.frequency : 6,
-          relevantToGap: selectedGap || currentGaps[0]?.topic || 'Enterprise Visibility Gap',
+          relevantToGap: assignedGap,
           aiOpportunity: 'High',
           citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
         },

@@ -55,4 +55,38 @@ describe('PublisherInventoryTable', () => {
     expect(getAdsyOrderUrl(null, 'techbullion.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=techbullion.com&SiteSearch%5Bverified%5D=1');
     expect(getAdsyOrderUrl(null)).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
   });
+
+  it('filters publishers dynamically based on selectedGapTopic, yielding different domains for different gaps', () => {
+    // 1. For Brand Awareness gap
+    const { unmount } = render(
+      <PublisherInventoryTable 
+        selectedGapTopic="Brand Awareness" 
+        publishersList={SAMPLE_PUBLISHERS} 
+      />
+    );
+    expect(screen.getByText('venturebeat.com')).toBeTruthy();
+    expect(screen.queryByText('business2community.com')).toBeNull();
+    unmount();
+
+    // 2. For SEO Performance gap
+    const { unmount: unmount2 } = render(
+      <PublisherInventoryTable 
+        selectedGapTopic="SEO Performance" 
+        publishersList={SAMPLE_PUBLISHERS} 
+      />
+    );
+    expect(screen.getByText('business2community.com')).toBeTruthy();
+    expect(screen.queryByText('venturebeat.com')).toBeNull();
+    unmount2();
+
+    // 3. For Content Quality gap
+    render(
+      <PublisherInventoryTable 
+        selectedGapTopic="Content Quality" 
+        publishersList={SAMPLE_PUBLISHERS} 
+      />
+    );
+    expect(screen.getByText('thestartupmag.com')).toBeTruthy();
+    expect(screen.queryByText('venturebeat.com')).toBeNull();
+  });
 });
