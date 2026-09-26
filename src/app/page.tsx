@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AdsyHeader from '@/components/AdsyHeader';
 import AdsySidebar from '@/components/AdsySidebar';
-import PublisherInventoryTable, { VerifiedPublisher, SAMPLE_PUBLISHERS } from '@/components/PublisherInventoryTable';
+import PublisherInventoryTable, { VerifiedPublisher, SAMPLE_PUBLISHERS, KNOWN_ADSY_CATALOG } from '@/components/PublisherInventoryTable';
 import CatalogTab from '@/components/CatalogTab';
 import HistoryTab from '@/components/HistoryTab';
 import CheckerTab from '@/components/CheckerTab';
@@ -293,6 +293,12 @@ export default function ControlPanelAIVisibilityPage() {
       return undefined;
     }
     const reportPubs: VerifiedPublisher[] = fullReport.sources.map((s, idx) => {
+      const cleanDom = s.domain.toLowerCase().replace(/^www\./, '').trim();
+      const known = KNOWN_ADSY_CATALOG[cleanDom];
+      const inAdsy = Boolean(known || s.is_in_adsy_catalog);
+      const pubId = known ? known.id : (s.adsy_publisher_id || `pub-rep-${idx}-${s.domain}`);
+      const price = known?.basePrice ?? (typeof s.adsy_price === 'number' && s.adsy_price > 0 ? s.adsy_price : (inAdsy ? 240.00 : null));
+
       const hash = s.domain.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
       const dr = 68 + (hash % 26);
       const da = Math.max(50, dr - 10);
@@ -316,7 +322,7 @@ export default function ControlPanelAIVisibilityPage() {
       }
 
       return {
-        id: s.adsy_publisher_id || `pub-rep-${idx}-${s.domain}`,
+        id: pubId,
         domain: s.domain,
         category: `${currentRun?.brand_name || 'Technology'} AI Citations`,
         country: 'US',
@@ -325,7 +331,8 @@ export default function ControlPanelAIVisibilityPage() {
         da,
         traffic,
         completionRate,
-        pricePlacement: typeof s.adsy_price === 'number' && !isNaN(s.adsy_price) ? s.adsy_price : 240.00,
+        pricePlacement: price,
+        isInAdsy: inAdsy,
         aiVisibility: {
           seenInAi: true,
           citationsCount: typeof s.frequency === 'number' ? s.frequency : 6,

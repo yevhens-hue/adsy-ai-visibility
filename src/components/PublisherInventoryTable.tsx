@@ -22,7 +22,8 @@ export interface VerifiedPublisher {
   da: number;
   traffic: string;
   completionRate: string;
-  pricePlacement: number;
+  pricePlacement?: number | null;
+  isInAdsy?: boolean;
   aiVisibility: {
     seenInAi: boolean;
     citationsCount: number;
@@ -69,9 +70,31 @@ export function getAdsyOrderUrl(
     : 'https://cp.adsy.com/marketer/platform';
 }
 
+export const KNOWN_ADSY_CATALOG: Record<string, { id: string; domain: string; basePrice: number }> = {
+  'techbullion.com': { id: '13278', domain: 'techbullion.com', basePrice: 185.00 },
+  'msn.com': { id: '86010', domain: 'msn.com', basePrice: 750.00 },
+  'metapress.com': { id: '55774', domain: 'metapress.com', basePrice: 145.00 },
+  'urbansplatter.com': { id: '50706', domain: 'urbansplatter.com', basePrice: 120.00 },
+  'bignewsnetwork.com': { id: '51871', domain: 'bignewsnetwork.com', basePrice: 180.00 },
+  'livepositively.com': { id: '120758', domain: 'livepositively.com', basePrice: 95.00 },
+  'programminginsider.com': { id: '56240', domain: 'programminginsider.com', basePrice: 165.00 },
+  'ipsnews.net': { id: '51869', domain: 'ipsnews.net', basePrice: 260.00 },
+  'anationofmoms.com': { id: '9773', domain: 'anationofmoms.com', basePrice: 85.00 },
+  'elevatedmagazines.com': { id: '93053', domain: 'elevatedmagazines.com', basePrice: 110.00 },
+  '2amagazine.com': { id: '380227', domain: '2amagazine.com', basePrice: 95.00 },
+  'zillow.com': { id: '150653', domain: 'zillow.com', basePrice: 890.00 },
+  'venturebeat.com': { id: 'pub-102', domain: 'venturebeat.com', basePrice: 650.00 },
+  'forbes.com': { id: 'pub-108', domain: 'forbes.com', basePrice: 1250.00 },
+  'techtimes.com': { id: 'pub-110', domain: 'techtimes.com', basePrice: 195.00 },
+  'business2community.com': { id: 'pub-105', domain: 'business2community.com', basePrice: 310.00 },
+  'thestartupmag.com': { id: 'pub-104', domain: 'thestartupmag.com', basePrice: 120.00 },
+  'contentmarketinginstitute.com': { id: 'pub-107', domain: 'contentmarketinginstitute.com', basePrice: 580.00 },
+  'financebuzz.com': { id: 'pub-103', domain: 'financebuzz.com', basePrice: 240.00 },
+};
+
 export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   {
-    id: 'pub-101',
+    id: '13278',
     domain: 'techbullion.com',
     category: 'Technology, Business & Finance',
     country: 'US',
@@ -81,6 +104,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '320,000',
     completionRate: '98%',
     pricePlacement: 185.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 4,
@@ -100,6 +124,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '2,400,000',
     completionRate: '95%',
     pricePlacement: 650.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 7,
@@ -119,6 +144,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '32,000,000',
     completionRate: '92%',
     pricePlacement: 1250.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 15,
@@ -138,6 +164,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '410,000',
     completionRate: '97%',
     pricePlacement: 195.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: false,
       citationsCount: 0,
@@ -157,6 +184,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '720,000',
     completionRate: '94%',
     pricePlacement: 310.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 5,
@@ -166,26 +194,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-106',
-    domain: 'searchenginewatch.com',
-    category: 'SEO & Search Engine Marketing',
-    country: 'US',
-    language: 'English',
-    dr: 87,
-    da: 80,
-    traffic: '650,000',
-    completionRate: '96%',
-    pricePlacement: 420.00,
-    aiVisibility: {
-      seenInAi: true,
-      citationsCount: 6,
-      relevantToGap: 'SEO Performance & Search Authority',
-      aiOpportunity: 'High',
-      citedInEngines: ['ChatGPT', 'Perplexity'],
-    },
-  },
-  {
-    id: 'pub-111',
+    id: '51869',
     domain: 'ipsnews.net',
     category: 'International News & Search Authority',
     country: 'US',
@@ -195,6 +204,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '520,000',
     completionRate: '98%',
     pricePlacement: 260.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 5,
@@ -214,6 +224,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '85,000',
     completionRate: '99%',
     pricePlacement: 120.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: false,
       citationsCount: 0,
@@ -233,6 +244,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '890,000',
     completionRate: '97%',
     pricePlacement: 580.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 8,
@@ -242,7 +254,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-112',
+    id: '55774',
     domain: 'metapress.com',
     category: 'Editorial Guides & Publishing Authority',
     country: 'US',
@@ -252,6 +264,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '210,000',
     completionRate: '97%',
     pricePlacement: 145.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 4,
@@ -271,6 +284,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '480,000',
     completionRate: '97%',
     pricePlacement: 240.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 3,
@@ -280,7 +294,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-113',
+    id: '51871',
     domain: 'bignewsnetwork.com',
     category: 'Global Business, Financial & Syndi Network',
     country: 'US',
@@ -290,12 +304,33 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '340,000',
     completionRate: '96%',
     pricePlacement: 180.00,
+    isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 3,
       relevantToGap: 'Cost Efficiency & ROI Benchmarks',
       aiOpportunity: 'High',
       citedInEngines: ['Perplexity'],
+    },
+  },
+  {
+    id: '50706',
+    domain: 'urbansplatter.com',
+    category: 'Real Estate, Architecture & Urban Trends',
+    country: 'US',
+    language: 'English',
+    dr: 68,
+    da: 54,
+    traffic: '160,000',
+    completionRate: '97%',
+    pricePlacement: 120.00,
+    isInAdsy: true,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'Content Quality & Execution Guides',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
     },
   },
 ];
@@ -376,7 +411,7 @@ export default function PublisherInventoryTable({
 }: PublisherInventoryTableProps) {
   const [publishers, setPublishers] = useState<VerifiedPublisher[]>(publishersList || SAMPLE_PUBLISHERS);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity' | 'medium_opportunity'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity' | 'medium_opportunity' | 'adsy_only'>('all');
   const [filterStrictByGap, setFilterStrictByGap] = useState<boolean>(true);
 
   // 1. Calculate matching publishers based on gap filter
@@ -399,6 +434,10 @@ export default function PublisherInventoryTable({
   );
   const countMediumOpp = React.useMemo(
     () => gapFilteredPublishers.filter((p) => p.aiVisibility?.aiOpportunity === 'Medium' || !p.aiVisibility?.seenInAi).length,
+    [gapFilteredPublishers]
+  );
+  const countAdsyOnly = React.useMemo(
+    () => gapFilteredPublishers.filter((p) => p.isInAdsy !== false).length,
     [gapFilteredPublishers]
   );
 
@@ -448,6 +487,9 @@ export default function PublisherInventoryTable({
       }
       if (activeFilter === 'medium_opportunity') {
         return p.aiVisibility?.aiOpportunity === 'Medium' || !p.aiVisibility?.seenInAi;
+      }
+      if (activeFilter === 'adsy_only') {
+        return p.isInAdsy !== false;
       }
       return true;
     });
@@ -569,6 +611,23 @@ export default function PublisherInventoryTable({
           >
             Catalog Openings ({countMediumOpp})
           </button>
+          <button 
+            type="button"
+            onClick={() => setActiveFilter('adsy_only')}
+            className="badge-adsy-pill"
+            style={{ 
+              cursor: 'pointer', 
+              background: activeFilter === 'adsy_only' ? '#0E810C' : '#F8FAFC',
+              color: activeFilter === 'adsy_only' ? '#FFFFFF' : '#334155',
+              border: activeFilter === 'adsy_only' ? '1px solid #0E810C' : '1px solid var(--adsy-border)',
+              fontWeight: activeFilter === 'adsy_only' ? 700 : 500,
+              padding: '6px 12px',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <ShieldCheck size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+            Adsy In-Stock ({countAdsyOnly})
+          </button>
         </div>
 
         {selectedGapTopic && (
@@ -632,9 +691,10 @@ export default function PublisherInventoryTable({
               sortedPublishers.map((pub) => {
                 const isFav = favorites.has(pub.id);
               const isHighlighted = highlightedDomain && pub.domain.toLowerCase() === highlightedDomain.toLowerCase();
-              const priceDisplay = typeof pub.pricePlacement === 'number' && !isNaN(pub.pricePlacement)
+              const isAvailableInAdsy = pub.isInAdsy !== false;
+              const priceDisplay = isAvailableInAdsy && typeof pub.pricePlacement === 'number' && !isNaN(pub.pricePlacement)
                 ? `$${pub.pricePlacement.toFixed(2)}`
-                : '$240.00';
+                : null;
               const enginesText = (pub.aiVisibility?.citedInEngines && pub.aiVisibility.citedInEngines.length > 0)
                 ? pub.aiVisibility.citedInEngines.join(', ')
                 : 'ChatGPT, Perplexity';
@@ -668,13 +728,19 @@ export default function PublisherInventoryTable({
                         <ExternalLink size={13} color="#94A3B8" />
                       </a>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
                       <span className="badge-adsy-pill" style={{ background: '#F1F5F9', color: '#475569' }}>
                         {pub.country || 'US'}
                       </span>
-                      <span className="badge-adsy-pill" style={{ background: '#DCFCE7', color: '#166534' }}>
-                        <ShieldCheck size={11} /> Verified
-                      </span>
+                      {isAvailableInAdsy ? (
+                        <span className="badge-adsy-pill" style={{ background: '#DCFCE7', color: '#166534' }}>
+                          <ShieldCheck size={11} /> Adsy Verified
+                        </span>
+                      ) : (
+                        <span className="badge-adsy-pill" style={{ background: '#FEF3C7', color: '#92400E' }}>
+                          AI Citation (Outreach)
+                        </span>
+                      )}
                       {isHighlighted && (
                         <span className="badge-adsy-pill badge-ai-purple">
                           Target Source Selected
@@ -723,10 +789,31 @@ export default function PublisherInventoryTable({
                     </div>
                   </td>
                   <td>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--adsy-text-dark)' }}>
-                      {priceDisplay}
-                    </div>
-                    <span style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>placement</span>
+                    {priceDisplay ? (
+                      <>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--adsy-text-dark)' }}>
+                          {priceDisplay}
+                        </div>
+                        <span style={{ fontSize: '10px', color: '#166534', fontWeight: 600, display: 'block' }}>
+                          Adsy Marketplace*
+                        </span>
+                        <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block' }}>
+                          Live quote in CP
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#B45309' }}>
+                          Earned PR
+                        </div>
+                        <span style={{ fontSize: '10px', color: '#92400E', fontWeight: 600, display: 'block' }}>
+                          Direct Outreach
+                        </span>
+                        <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block' }}>
+                          Not sold in Adsy
+                        </span>
+                      </>
+                    )}
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '6px' }}>
@@ -738,15 +825,28 @@ export default function PublisherInventoryTable({
                       >
                         <FileText size={14} /> Brief
                       </button>
-                      <a 
-                        href={getAdsyOrderUrl(pub.id, pub.domain)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-adsy-green" 
-                        style={{ padding: '6px 12px', fontSize: '12px' }}
-                      >
-                        <ShoppingCart size={14} /> Buy Post
-                      </a>
+                      {isAvailableInAdsy ? (
+                        <a 
+                          href={getAdsyOrderUrl(pub.id, pub.domain)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-adsy-green" 
+                          style={{ padding: '6px 12px', fontSize: '12px' }}
+                        >
+                          <ShoppingCart size={14} /> Buy Post
+                        </a>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setActiveFilter('adsy_only');
+                          }}
+                          className="btn-adsy-outline" 
+                          style={{ padding: '6px 10px', fontSize: '12px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF', fontWeight: 600 }}
+                          title="View verified Adsy alternatives for this gap"
+                        >
+                          Match Adsy
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -754,6 +854,9 @@ export default function PublisherInventoryTable({
             }))}
           </tbody>
         </table>
+        <div style={{ padding: '10px 16px', background: '#F8FAFC', borderTop: '1px solid var(--adsy-border)', fontSize: '11px', color: 'var(--adsy-text-secondary)', lineHeight: 1.5 }}>
+          *Цены в Adsy CP динамические и устанавливаются паблишерами индивидуально (зависят от опции размещения или написания статьи). Площадки со статусом <strong>AI Citation (Outreach)</strong> являются внешними авторитетными медиа, обнаруженными в AI-ответах; для них используйте генератор ТЗ (кнопка <strong>Brief</strong>) для прямого outreach или кнопку <strong>Match Adsy</strong> для выбора подтвержденных аналогов из каталога Adsy.
+        </div>
       </div>
     </div>
   );

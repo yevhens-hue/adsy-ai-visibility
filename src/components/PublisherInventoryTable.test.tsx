@@ -146,4 +146,69 @@ describe('PublisherInventoryTable', () => {
     expect(screen.queryByText('business2community.com')).toBeNull();
     expect(screen.getByText('venturebeat.com')).toBeTruthy();
   });
+
+  it('correctly distinguishes between Adsy verified inventory and external AI citation sources', () => {
+    const testPubs: VerifiedPublisher[] = [
+      {
+        id: '13278',
+        domain: 'techbullion.com',
+        category: 'Tech',
+        country: 'US',
+        language: 'English',
+        dr: 79,
+        da: 68,
+        traffic: '320k',
+        completionRate: '98%',
+        pricePlacement: 185.0,
+        isInAdsy: true,
+        aiVisibility: {
+          seenInAi: true,
+          citationsCount: 4,
+          relevantToGap: 'Brand',
+          aiOpportunity: 'High',
+          citedInEngines: ['ChatGPT'],
+        },
+      },
+      {
+        id: 'ext-g2',
+        domain: 'g2.com',
+        category: 'Software Reviews',
+        country: 'US',
+        language: 'English',
+        dr: 90,
+        da: 85,
+        traffic: '5M',
+        completionRate: 'N/A',
+        pricePlacement: null,
+        isInAdsy: false,
+        aiVisibility: {
+          seenInAi: true,
+          citationsCount: 12,
+          relevantToGap: 'Brand',
+          aiOpportunity: 'High',
+          citedInEngines: ['Perplexity'],
+        },
+      },
+    ];
+
+    render(<PublisherInventoryTable publishersList={testPubs} />);
+
+    // In Adsy: has Buy Post, Adsy Verified badge, and price
+    expect(screen.getByText('techbullion.com')).toBeTruthy();
+    expect(screen.getByText('Adsy Verified')).toBeTruthy();
+    expect(screen.getByText('$185.00')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Buy Post/i })).toBeTruthy();
+
+    // External citation not in Adsy: has AI Citation (Outreach) badge, Earned PR, and Match Adsy button
+    expect(screen.getByText('g2.com')).toBeTruthy();
+    expect(screen.getAllByText('AI Citation (Outreach)').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Earned PR')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Match Adsy/i })).toBeTruthy();
+
+    // Filter by Adsy In-Stock
+    const adsyOnlyBtn = screen.getByRole('button', { name: /Adsy In-Stock/i });
+    fireEvent.click(adsyOnlyBtn);
+    expect(screen.getByText('techbullion.com')).toBeTruthy();
+    expect(screen.queryByText('g2.com')).toBeNull();
+  });
 });
