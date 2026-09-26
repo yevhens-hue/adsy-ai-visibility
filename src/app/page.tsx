@@ -235,8 +235,20 @@ export default function ControlPanelAIVisibilityPage() {
   };
 
   const handleAddCompetitor = () => {
-    if (!newCompetitorName.trim() || !newCompetitorDomain.trim()) return;
-    setCustomCompetitors(prev => [...prev, { name: newCompetitorName.trim(), domain: newCompetitorDomain.trim() }]);
+    const rawName = newCompetitorName.trim();
+    const rawDomain = newCompetitorDomain.trim();
+    if (!rawName && !rawDomain) return;
+
+    let finalDomain = rawDomain || rawName;
+    finalDomain = finalDomain.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase();
+    
+    let finalName = rawName;
+    if (!finalName || finalName.includes('.')) {
+      const clean = (finalDomain || rawName).replace(/^www\./, '').split('.')[0];
+      finalName = clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
+
+    setCustomCompetitors(prev => [...prev, { name: finalName, domain: finalDomain }]);
     setNewCompetitorName('');
     setNewCompetitorDomain('');
   };

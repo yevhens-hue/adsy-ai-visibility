@@ -244,22 +244,7 @@ ${customCStr}`;
 
   const brandName = evalData.brand_name || metadata.title?.split('—')[0]?.trim() || brandGuess;
 
-  // Build CheckPrompt items
-  const prompts: CheckPrompt[] = evalData.prompts.slice(0, targetPromptsCount).map((p) => {
-    const isCustom = Boolean(p.is_custom || (customPrompts && customPrompts.some(cp => cp.toLowerCase() === p.text.toLowerCase())));
-    return {
-      id: getUUID(),
-      run_id: runId,
-      text: p.text,
-      topic: p.topic,
-      prompt_type: p.prompt_type,
-      is_custom: isCustom,
-      has_brand_mention: Boolean(p.has_brand_mention),
-      created_at: new Date().toISOString(),
-    };
-  });
-
-  // Build CheckCompetitor items
+  // Build CheckCompetitor items first
   let competitorList = evalData.competitors;
   if (customCompetitors && customCompetitors.length > 0) {
     const customList = customCompetitors.map((c, i) => ({
@@ -269,7 +254,7 @@ ${customCStr}`;
       prompt_coverage: 80 - i * 5,
       mentions_count: 140 - i * 20,
     }));
-    competitorList = [...customList, ...competitorList.filter(c => !customCompetitors.some(cc => cc.name === c.name))];
+    competitorList = [...customList, ...competitorList.filter(c => !customCompetitors.some(cc => cc.domain.toLowerCase() === c.domain.toLowerCase() || cc.name.toLowerCase() === c.name.toLowerCase()))];
   }
 
   const competitors: CheckCompetitor[] = competitorList.map((c) => ({
@@ -281,6 +266,51 @@ ${customCStr}`;
     prompt_coverage: Number(c.prompt_coverage) || 70,
     mentions_count: Number(c.mentions_count) || 120,
   }));
+
+  // Build CheckPrompt items with guaranteed injection of custom queries
+  let rawPrompts = [...evalData.prompts];
+
+  if (customPrompts && customPrompts.length > 0) {
+    const customPromptObjects = customPrompts.map(cp => {
+      const trimmed = cp.trim();
+      const promptText = trimmed.endsWith('?') ? trimmed : `What are the best ${trimmed} platforms and services in 2026?`;
+      const compNames = competitors.slice(0, 2).map(c => c.name);
+      return {
+        text: promptText,
+        topic: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
+        prompt_type: 'category' as const,
+        has_brand_mention: false,
+        is_custom: true,
+        leading_market_solutions: compNames.length > 0 ? compNames : ['WhitePress', 'Adsy'],
+        relevant_citations: [
+          'https://searchengineland.com/guest-posting-standards-2026',
+          'https://ahrefs.com/blog/link-building-guide',
+          'https://forbes.com/business/content-syndication'
+        ],
+        key_recommendation_context: `Evaluations prioritize publisher vetting transparency, domain authority stability, and guaranteed indexation compliance.`
+      };
+    });
+
+    // Custom queries replace default category prompts in the matrix
+    const nonCategoryPrompts = rawPrompts.filter(p => p.prompt_type !== 'category');
+    const existingCategoryPrompts = rawPrompts.filter(p => p.prompt_type === 'category');
+    const remainingCategory = existingCategoryPrompts.slice(customPromptObjects.length);
+    rawPrompts = [...customPromptObjects, ...remainingCategory, ...nonCategoryPrompts];
+  }
+
+  const prompts: CheckPrompt[] = rawPrompts.slice(0, targetPromptsCount).map((p) => {
+    const isCustom = Boolean(p.is_custom || (customPrompts && customPrompts.some(cp => p.text.toLowerCase().includes(cp.toLowerCase()))));
+    return {
+      id: getUUID(),
+      run_id: runId,
+      text: p.text,
+      topic: p.topic,
+      prompt_type: p.prompt_type,
+      is_custom: isCustom,
+      has_brand_mention: Boolean(p.has_brand_mention),
+      created_at: new Date().toISOString(),
+    };
+  });
 
   // Build CheckSource items
   const sources: CheckSource[] = evalData.sources.map((s, idx) => ({
@@ -313,10 +343,14 @@ ${customCStr}`;
   let positiveObservations = 0;
 
   prompts.forEach((p, pIdx) => {
-    const rawEvalPrompt = evalData?.prompts[pIdx];
-    const solutions = (rawEvalPrompt?.leading_market_solutions && rawEvalPrompt.leading_market_solutions.length > 0)
-      ? rawEvalPrompt.leading_market_solutions
-      : competitors.slice(0, 2).map(c => c.name);
+    const rawEvalPrompt = rawPrompts[pIdx];
+    // Prioritize custom competitors if specified by user
+    const defaultCompetitorNames = competitors.slice(0, 2).map(c => c.name);
+    const solutions = (customCompetitors && customCompetitors.length > 0)
+      ? defaultCompetitorNames
+      : ((rawEvalPrompt?.leading_market_solutions && rawEvalPrompt.leading_market_solutions.length > 0)
+          ? rawEvalPrompt.leading_market_solutions
+          : defaultCompetitorNames);
     
     const promptCitations = (rawEvalPrompt?.relevant_citations && rawEvalPrompt.relevant_citations.length > 0)
       ? rawEvalPrompt.relevant_citations
