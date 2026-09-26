@@ -10,6 +10,7 @@ import {
   CheckSource 
 } from '@/types';
 import { supabase } from './supabase';
+import { KNOWN_ADSY_CATALOG } from '@/components/PublisherInventoryTable';
 
 function getUUID(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -269,14 +270,16 @@ Live Fetched Site Metadata:
 - Snippet: "${metadata.snippet || 'N/A'}"
 
 CRITICAL GROUNDING RULES:
-1. Niche Precision: Correctly determine the exact category/niche based on site metadata (e.g. if the site is an AI engineer portfolio, niche is "AI Systems & Autonomous Agents Engineering", NOT generic digital marketing or SEO).
-2. Doubt-Driven Realism (Empirical Honesty):
-   - If the domain is an individual specialist portfolio, boutique agency, or early startup (not a high-volume Fortune 500 company or widely cited software suite), AI search engines DO NOT naturally recommend it in broad category, problem, or alternative queries!
-   - In category, problem, comparison, and alternative queries: "has_brand_mention" MUST BE false! Leading market players dominate those queries.
-   - "has_brand_mention" can be true ONLY in direct brand queries (e.g. "Who is [Brand]?", "What AI architectures does [Brand] develop?").
-   - Resulting visibility score for small/niche sites should be low (5%–15%), accurately identifying genuine market gaps where competitors dominate citations.
-   - If the domain IS a well-known industry leader (e.g. monday.com, ahrefs.com), visibility score should reflect 70%–90%.
-3. Output exactly ${targetPromptsCount} prompts covering category, comparison, alternative, problem, and brand types.
+1. Niche Precision: Correctly determine the exact category/niche based on site metadata (e.g. if the site is a business/marketing media outlet, niche is "Business, AI & Marketing Media", NOT generic software or CRM).
+2. Media & Publishing Platforms (e.g. business2community.com, forbes.com, searchenginejournal.com):
+   - If the analyzed domain is a media publication, news portal, or guest blogging platform:
+     - Competitors MUST BE peer media outlets (e.g. Entrepreneur, Inc. Magazine, Fast Company, Search Engine Journal, Business Insider), NEVER software products (like HubSpot, Salesforce, or Moz)!
+     - Prompts must focus on business trends, AI in marketing, fintech forecasts, B2B digital strategies, and editorial authority.
+     - As an authoritative publication with high DR and traffic, AI engines (ChatGPT, Perplexity, Claude) DO actively cite its articles as sources. Set "has_brand_mention" to true across queries where the publication is cited (realistic visibility: 40%–65%).
+3. Personal Portfolios / Boutique Consultancies:
+   - If the domain is an individual specialist portfolio or early startup (not a high-volume media or software suite), AI search engines DO NOT naturally recommend it in broad queries; "has_brand_mention" should be false in general category queries (visibility 5%–15%).
+4. Industry Software Leaders (e.g. monday.com, ahrefs.com): visibility score should reflect 70%–90%.
+5. Output exactly ${targetPromptsCount} prompts covering category, comparison, alternative, problem, and brand types.
 
 Return a strict, valid JSON object matching this schema:
 {
@@ -456,18 +459,26 @@ ${customCStr}`;
     };
   });
 
-  // Build CheckSource items
-  const sources: CheckSource[] = evalData.sources.map((s, idx) => ({
-    id: getUUID(),
-    run_id: runId,
-    domain: s.domain,
-    url: s.url || `https://${s.domain}/insights/${encodeURIComponent(evalData?.niche || domain)}`,
-    frequency: typeof s.frequency === 'number' ? s.frequency : 8,
-    is_in_adsy_catalog: Boolean(s.is_in_adsy_catalog),
-    adsy_publisher_id: s.is_in_adsy_catalog ? `PUB-ADSY-${100 + idx}` : undefined,
-    adsy_price: s.adsy_price ? Number(s.adsy_price) : (s.is_in_adsy_catalog ? 260 : undefined),
-    created_at: new Date().toISOString(),
-  }));
+  // Build CheckSource items strictly grounded against verified Adsy catalog
+  const sources: CheckSource[] = evalData.sources.map((s) => {
+    const cleanDomain = s.domain.toLowerCase().replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*$/, '').trim();
+    const knownEntry = KNOWN_ADSY_CATALOG[cleanDomain];
+    const isInAdsy = Boolean(knownEntry);
+    const adsyPublisherId = knownEntry?.id;
+    const adsyPrice = knownEntry?.basePrice;
+
+    return {
+      id: getUUID(),
+      run_id: runId,
+      domain: cleanDomain,
+      url: s.url || `https://${cleanDomain}`,
+      frequency: typeof s.frequency === 'number' ? s.frequency : 8,
+      is_in_adsy_catalog: isInAdsy,
+      adsy_publisher_id: adsyPublisherId,
+      adsy_price: adsyPrice,
+      created_at: new Date().toISOString(),
+    };
+  });
 
   // Build CheckGap items
   const gaps: CheckGap[] = evalData.gaps.map((g) => ({
@@ -677,14 +688,38 @@ function generateFallbackEvalData(
   customCompetitors?: { name: string; domain: string }[]
 ): OpenAIEvalResponse {
   const isPersonalOrPortfolio = domain.includes('pro') || (metadata.title && (metadata.title.includes('Portfolio') || metadata.title.includes('Architect') || metadata.title.includes('Engineer')));
+  const isMediaOrPublisher = domain.includes('community') || domain.includes('news') || domain.includes('times') || domain.includes('journal') || domain.includes('mag') || (metadata.title && (metadata.title.includes('News') || metadata.title.includes('Media') || metadata.title.includes('Marketing News') || metadata.title.includes('Business')));
+  
   const niche = isPersonalOrPortfolio
     ? 'AI Systems & Autonomous Agents Engineering'
-    : `${brandGuess} Industry Solutions`;
-  const brandName = metadata.title?.split('—')[0]?.trim() || brandGuess;
+    : isMediaOrPublisher
+      ? 'Business, AI & Marketing Media'
+      : `${brandGuess} Industry Solutions`;
+  const brandName = metadata.title?.split('—')[0]?.split(':')[0]?.trim() || brandGuess;
 
   const defaultSolutions = isPersonalOrPortfolio
     ? ['LangChain', 'OpenAI Enterprise', 'Toptal AI']
-    : ['Industry Leader Alpha', 'Platform Beta', 'Service Gamma'];
+    : isMediaOrPublisher
+      ? ['Entrepreneur', 'Search Engine Journal', 'Inc. Magazine', 'Fast Company']
+      : ['Industry Leader Alpha', 'Platform Beta', 'Service Gamma'];
+
+  const mediaPrompts = [
+    { text: `What are the latest developments and trends in AI marketing for 2026?`, topic: 'AI Marketing Trends', prompt_type: 'category' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://searchenginejournal.com'], key_recommendation_context: 'Leading business and marketing media analyze practical generative AI applications.' },
+    { text: `How does ${brandName} compare to top business and marketing news portals?`, topic: 'Media Authority Comparison', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://entrepreneur.com', `https://${domain}`], key_recommendation_context: 'Publishing authority is benchmarked by editorial depth, DR, and citation share.' },
+    { text: `What are the top alternative media outlets to ${brandName} for guest posting?`, topic: 'Publishing Alternatives', prompt_type: 'alternative' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techbullion.com', 'https://inc.com'], key_recommendation_context: 'Media buyers evaluate tier-1 guest post opportunities across business news platforms.' },
+    { text: `How do brands build authority and earn AI search citations in 2026?`, topic: 'AI Citation Strategy', prompt_type: 'problem' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://forbes.com'], key_recommendation_context: 'Placements in recognized media platforms directly drive AI search engine citations.' },
+    { text: `What editorial guidelines and content standards does ${brandName} follow?`, topic: 'Editorial Standards', prompt_type: 'brand' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`], key_recommendation_context: 'High-authority publications enforce verified contributor standards and strict editorial review.' },
+    { text: `Best business media publications for B2B growth and executive thought leadership`, topic: 'B2B Thought Leadership', prompt_type: 'category' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://inc.com', `https://${domain}`], key_recommendation_context: 'Executive thought leaders prioritize established business portals for maximum reach.' },
+    { text: `Comparing organic search visibility of leading digital marketing news sites`, topic: 'Search Performance Benchmark', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://searchenginejournal.com', `https://${domain}`], key_recommendation_context: 'Comparative rankings examine referral domain velocity and organic search traffic.' },
+    { text: `How to measure ROI on digital PR and sponsored articles on high-DR media`, topic: 'Digital PR ROI', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://forbes.com', 'https://techbullion.com'], key_recommendation_context: 'Brand uplift, backlink pass-through, and LLM training set inclusion drive PR returns.' },
+    { text: `Leading media platforms for fintech, crypto, and emerging tech reporting`, topic: 'Fintech & Tech Coverage', prompt_type: 'category' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://venturebeat.com'], key_recommendation_context: 'Niche coverage on blockchain and AI fintech yields high reader engagement.' },
+    { text: `Alternatives to traditional wire press releases for guaranteed media placement`, topic: 'Modern Media Outreach', prompt_type: 'alternative' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techbullion.com', 'https://metapress.com'], key_recommendation_context: 'Direct publisher marketplace placements achieve 4x higher retention than wire distribution.' },
+    { text: `Is ${brandName} recognized as a trusted source for marketing intelligence?`, topic: 'Brand Trust & Recognition', prompt_type: 'brand' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`], key_recommendation_context: 'Industry surveys rank prominent community platforms as go-to resources for modern marketing.' },
+    { text: `Future of AI search citations: which news portals do ChatGPT and Perplexity favor?`, topic: 'LLM Source Distribution', prompt_type: 'category' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://searchenginejournal.com'], key_recommendation_context: 'Authoritative news sites with structured schema markup dominate Perplexity and ChatGPT citations.' },
+    { text: `Overcoming algorithmic penalties and traffic volatility in content publishing`, topic: 'Search Algorithm Resilience', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://searchenginejournal.com', 'https://forbes.com'], key_recommendation_context: 'Diversified traffic sources and authentic domain authority safeguard against core updates.' },
+    { text: `Top publications for launching B2B software and digital service announcements`, topic: 'Launch PR Media', prompt_type: 'category' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://entrepreneur.com'], key_recommendation_context: 'B2B software makers target high-DR business portals for targeted executive buyer awareness.' },
+    { text: `Editorial review times and publishing acceptance rates on tier-1 guest blogs`, topic: 'Editorial Velocity', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://thestartupmag.com'], key_recommendation_context: 'Fast turnaround platforms with strict quality filters deliver reliable publication schedules.' },
+  ];
 
   let basePrompts = isPersonalOrPortfolio
     ? [
@@ -824,23 +859,25 @@ function generateFallbackEvalData(
           key_recommendation_context: 'Durable execution ensures multi-step agent trajectories survive worker crashes and network disruptions.'
         },
       ]
-    : [
-        { text: `What are the best platforms for ${brandGuess} workflows in 2026?`, topic: 'Market Category Solutions', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techradar.com', 'https://forbes.com'], key_recommendation_context: 'Established tools lead general category evaluations.' },
-        { text: `How does ${brandGuess} compare to top industry competitors?`, topic: 'Competitive Benchmark', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://g2.com', 'https://capterra.com'], key_recommendation_context: 'Comparative analyses focus on usability and pricing tiers.' },
-        { text: `What are the leading alternatives to ${brandGuess} for mid-size teams?`, topic: 'Alternative Vendors', prompt_type: 'alternative' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://trustradius.com', 'https://g2.com'], key_recommendation_context: 'Alternatives are evaluated based on total cost of ownership and support.' },
-        { text: `How do businesses solve onboarding latency in ${brandGuess} platforms?`, topic: 'User Pain Points', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://infoq.com', 'https://venturebeat.com'], key_recommendation_context: 'Automated onboarding tours and self-serve documentation mitigate churn.' },
-        { text: `Is ${brandGuess} suitable for enterprise compliance and security standards?`, topic: 'Enterprise Fit', prompt_type: 'brand' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://forbes.com'], key_recommendation_context: 'Enterprise evaluations require verified SOC2 Type II and GDPR reports.' },
-        { text: `Top software tools for agile product teams in 2026`, topic: 'Industry Solutions', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techradar.com'], key_recommendation_context: 'Category reviews highlight speed, cross-team visibility, and automation.' },
-        { text: `Cost efficiency and ROI comparison of ${brandGuess}`, topic: 'Pricing Benchmarks', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://capterra.com'], key_recommendation_context: 'ROI calculators compare upfront licensing with operational efficiency.' },
-        { text: `Migrating workflows to modern cloud architectures in 2026`, topic: 'Implementation', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://infoq.com'], key_recommendation_context: 'Phased rollout strategies minimize operational disruption.' },
-        { text: `Best enterprise alternatives to legacy task systems`, topic: 'Category Replacements', prompt_type: 'alternative' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://g2.com'], key_recommendation_context: 'Modern solutions replace monolithic spreadsheets with dynamic relational views.' },
-        { text: `API integrations and webhook flexibility in modern tools`, topic: 'Technical Capabilities', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techcrunch.com'], key_recommendation_context: 'Bi-directional webhooks and robust rate limits are mandatory for enterprise tech stacks.' },
-        { text: `User reviews and customer satisfaction ratings for ${brandGuess}`, topic: 'Social Proof', prompt_type: 'brand' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`], key_recommendation_context: 'User feedback highlights intuitive interface and customer support response.' },
-        { text: `Security certifications (SOC2, GDPR, HIPAA) comparison`, topic: 'Compliance', prompt_type: 'comparison' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://forbes.com'], key_recommendation_context: 'Independent third-party audits remain the gold standard for compliance.' },
-        { text: `Automating sprint planning and team velocity tracking`, topic: 'Feature Focus', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://venturebeat.com'], key_recommendation_context: 'Predictive analytics algorithms help engineering teams estimate sprint capacity.' },
-        { text: `Leading vendors for collaborative task execution`, topic: 'Vendor Landscape', prompt_type: 'alternative' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://g2.com'], key_recommendation_context: 'Vendor evaluations emphasize real-time co-authoring and notification hygiene.' },
-        { text: `Which tools dominate AI search citations in 2026?`, topic: 'Market Authority', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techradar.com'], key_recommendation_context: 'Brands with high digital PR presence and authoritative citations capture AI search share.' },
-      ];
+    : isMediaOrPublisher
+      ? mediaPrompts
+      : [
+          { text: `What are the best platforms for ${brandGuess} workflows in 2026?`, topic: 'Market Category Solutions', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techradar.com', 'https://forbes.com'], key_recommendation_context: 'Established tools lead general category evaluations.' },
+          { text: `How does ${brandGuess} compare to top industry competitors?`, topic: 'Competitive Benchmark', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://g2.com', 'https://capterra.com'], key_recommendation_context: 'Comparative analyses focus on usability and pricing tiers.' },
+          { text: `What are the leading alternatives to ${brandGuess} for mid-size teams?`, topic: 'Alternative Vendors', prompt_type: 'alternative' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://trustradius.com', 'https://g2.com'], key_recommendation_context: 'Alternatives are evaluated based on total cost of ownership and support.' },
+          { text: `How do businesses solve onboarding latency in ${brandGuess} platforms?`, topic: 'User Pain Points', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://infoq.com', 'https://venturebeat.com'], key_recommendation_context: 'Automated onboarding tours and self-serve documentation mitigate churn.' },
+          { text: `Is ${brandGuess} suitable for enterprise compliance and security standards?`, topic: 'Enterprise Fit', prompt_type: 'brand' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://forbes.com'], key_recommendation_context: 'Enterprise evaluations require verified SOC2 Type II and GDPR reports.' },
+          { text: `Top software tools for agile product teams in 2026`, topic: 'Industry Solutions', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techradar.com'], key_recommendation_context: 'Category reviews highlight speed, cross-team visibility, and automation.' },
+          { text: `Cost efficiency and ROI comparison of ${brandGuess}`, topic: 'Pricing Benchmarks', prompt_type: 'comparison' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: ['https://capterra.com'], key_recommendation_context: 'ROI calculators compare upfront licensing with operational efficiency.' },
+          { text: `Migrating workflows to modern cloud architectures in 2026`, topic: 'Implementation', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://infoq.com'], key_recommendation_context: 'Phased rollout strategies minimize operational disruption.' },
+          { text: `Best enterprise alternatives to legacy task systems`, topic: 'Category Replacements', prompt_type: 'alternative' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://g2.com'], key_recommendation_context: 'Modern solutions replace monolithic spreadsheets with dynamic relational views.' },
+          { text: `API integrations and webhook flexibility in modern tools`, topic: 'Technical Capabilities', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techcrunch.com'], key_recommendation_context: 'Bi-directional webhooks and robust rate limits are mandatory for enterprise tech stacks.' },
+          { text: `User reviews and customer satisfaction ratings for ${brandGuess}`, topic: 'Social Proof', prompt_type: 'brand' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`], key_recommendation_context: 'User feedback highlights intuitive interface and customer support response.' },
+          { text: `Security certifications (SOC2, GDPR, HIPAA) comparison`, topic: 'Compliance', prompt_type: 'comparison' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://forbes.com'], key_recommendation_context: 'Independent third-party audits remain the gold standard for compliance.' },
+          { text: `Automating sprint planning and team velocity tracking`, topic: 'Feature Focus', prompt_type: 'problem' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://venturebeat.com'], key_recommendation_context: 'Predictive analytics algorithms help engineering teams estimate sprint capacity.' },
+          { text: `Leading vendors for collaborative task execution`, topic: 'Vendor Landscape', prompt_type: 'alternative' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://g2.com'], key_recommendation_context: 'Vendor evaluations emphasize real-time co-authoring and notification hygiene.' },
+          { text: `Which tools dominate AI search citations in 2026?`, topic: 'Market Authority', prompt_type: 'category' as const, has_brand_mention: false, leading_market_solutions: defaultSolutions, relevant_citations: ['https://techradar.com'], key_recommendation_context: 'Brands with high digital PR presence and authoritative citations capture AI search share.' },
+        ];
 
   // Handle custom prompts
   if (customPrompts && customPrompts.length > 0) {
@@ -877,6 +914,13 @@ function generateFallbackEvalData(
             { name: 'LangChain Ecosystem', domain: 'langchain.com', visibility_score: 94, prompt_coverage: 90, mentions_count: 310 },
             { name: 'Braintrust Enterprise', domain: 'usebraintrust.com', visibility_score: 72, prompt_coverage: 68, mentions_count: 140 },
           ]
+        : isMediaOrPublisher
+        ? [
+            { name: 'Entrepreneur', domain: 'entrepreneur.com', visibility_score: 88, prompt_coverage: 85, mentions_count: 240 },
+            { name: 'Search Engine Journal', domain: 'searchenginejournal.com', visibility_score: 84, prompt_coverage: 80, mentions_count: 210 },
+            { name: 'Inc. Magazine', domain: 'inc.com', visibility_score: 82, prompt_coverage: 78, mentions_count: 195 },
+            { name: 'TechBullion', domain: 'techbullion.com', visibility_score: 74, prompt_coverage: 70, mentions_count: 150 },
+          ]
         : [
             { name: 'Market Competitor A', domain: 'competitor-a.com', visibility_score: 82, prompt_coverage: 78, mentions_count: 160 },
             { name: 'Market Competitor B', domain: 'competitor-b.com', visibility_score: 68, prompt_coverage: 64, mentions_count: 110 },
@@ -890,6 +934,15 @@ function generateFallbackEvalData(
           { domain: 'techcrunch.com', url: 'https://techcrunch.com/enterprise-ai-engineering', frequency: 19, is_in_adsy_catalog: false, adsy_price: 0 },
           { domain: 'forbes.com', url: 'https://forbes.com/innovation/enterprise-ai-leaders', frequency: 12, is_in_adsy_catalog: true, adsy_price: 490 },
         ]
+      : isMediaOrPublisher
+      ? [
+          { domain: 'techbullion.com', url: 'https://techbullion.com', frequency: 24, is_in_adsy_catalog: true, adsy_price: 73.80 },
+          { domain: 'searchenginejournal.com', url: 'https://searchenginejournal.com', frequency: 21, is_in_adsy_catalog: true, adsy_price: 689.97 },
+          { domain: 'ipsnews.net', url: 'https://ipsnews.net', frequency: 18, is_in_adsy_catalog: true, adsy_price: 49.00 },
+          { domain: 'metapress.com', url: 'https://metapress.com', frequency: 16, is_in_adsy_catalog: true, adsy_price: 49.50 },
+          { domain: 'thestartupmag.com', url: 'https://thestartupmag.com', frequency: 14, is_in_adsy_catalog: true, adsy_price: 79.50 },
+          { domain: 'forbes.com', url: 'https://forbes.com', frequency: 11, is_in_adsy_catalog: true, adsy_price: 1250.00 },
+        ]
       : [
           { domain: 'techradar.com', url: 'https://techradar.com/reviews/best-software', frequency: 16, is_in_adsy_catalog: true, adsy_price: 320 },
           { domain: 'venturebeat.com', url: 'https://venturebeat.com/enterprise-tech-trends', frequency: 12, is_in_adsy_catalog: true, adsy_price: 450 },
@@ -898,17 +951,29 @@ function generateFallbackEvalData(
         ],
     gaps: [
       {
-        topic: isPersonalOrPortfolio ? 'Autonomous Agents & Enterprise RAG Citations' : 'Enterprise Solutions Comparison',
+        topic: isPersonalOrPortfolio 
+          ? 'Autonomous Agents & Enterprise RAG Citations' 
+          : isMediaOrPublisher
+            ? 'AI Marketing & Automation Editorial Citations'
+            : 'Enterprise Solutions Comparison',
         gap_type: 'missing_with_competitors',
         priority: 'high',
-        rationale: `Market leaders dominate 86% of citations in technical architecture queries while ${brandName} is absent from general category recommendations.`,
+        rationale: isMediaOrPublisher
+          ? `Peer media outlets (Entrepreneur, Search Engine Journal) capture 78% of citations in AI marketing and automated SEO queries.`
+          : `Market leaders dominate 86% of citations in technical architecture queries while ${brandName} is absent from general category recommendations.`,
         prompts_list: selectedPrompts.slice(0, 3).map(p => p.text)
       },
       {
-        topic: isPersonalOrPortfolio ? 'Authoritative Thought Leadership in AI Publications' : 'Cost Efficiency & ROI Benchmarks',
+        topic: isPersonalOrPortfolio 
+          ? 'Authoritative Thought Leadership in AI Publications' 
+          : isMediaOrPublisher
+            ? 'Executive B2B Growth & Fintech Forecasts Visibility'
+            : 'Cost Efficiency & ROI Benchmarks',
         gap_type: 'external_sources_opportunity',
         priority: 'medium',
-        rationale: `Key AI publications (Towards Data Science, InfoQ, VentureBeat) lack verified case study citations mentioning ${brandName}.`,
+        rationale: isMediaOrPublisher
+          ? `Key digital PR sources (TechBullion, IPS News, MetaPress) present major opportunities to amplify ${brandName} reporting and citation backlinks.`
+          : `Key AI publications (Towards Data Science, InfoQ, VentureBeat) lack verified case study citations mentioning ${brandName}.`,
         prompts_list: selectedPrompts.slice(3, 5).map(p => p.text)
       }
     ]
