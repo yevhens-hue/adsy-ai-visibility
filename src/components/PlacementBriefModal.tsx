@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Check, Copy, ExternalLink, ShieldCheck } from 'lucide-react';
-import { VerifiedPublisher } from './PublisherInventoryTable';
+import { VerifiedPublisher, getAdsyOrderUrl } from './PublisherInventoryTable';
 
 interface PlacementBriefModalProps {
   publisher: VerifiedPublisher;
@@ -190,7 +190,7 @@ Create an authoritative comparison and workflow analysis demonstrating how ${bra
                 } catch (e) {
                   console.warn('Brief save note:', e);
                 }
-                window.open('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1', '_blank');
+                window.open(getAdsyOrderUrl(publisher.id), '_blank');
               }}
               className="btn-adsy-green"
             >

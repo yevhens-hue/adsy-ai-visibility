@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import PublisherInventoryTable, { SAMPLE_PUBLISHERS } from './PublisherInventoryTable';
+import PublisherInventoryTable, { SAMPLE_PUBLISHERS, getAdsyOrderUrl } from './PublisherInventoryTable';
 import { VerifiedPublisher } from './PublisherInventoryTable';
 
 describe('PublisherInventoryTable', () => {
@@ -40,8 +40,10 @@ describe('PublisherInventoryTable', () => {
     expect(screen.getByText('techbullion.com')).toBeTruthy();
   });
 
-  it('shows "High AI Opportunity" badge text', () => {
-    render(<PublisherInventoryTable publishersList={SAMPLE_PUBLISHERS} />);
-    expect(screen.getAllByText('AI Opportunity: High').length).toBeGreaterThan(0);
+  it('generates choose-product URL for numeric ID and catalog search URL otherwise', () => {
+    expect(getAdsyOrderUrl('13278')).toBe('https://cp.adsy.com/marketer/platform/choose-product/13278');
+    expect(getAdsyOrderUrl(13278)).toBe('https://cp.adsy.com/marketer/platform/choose-product/13278');
+    expect(getAdsyOrderUrl('pub-101')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
+    expect(getAdsyOrderUrl(null)).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
   });
 });

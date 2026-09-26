@@ -92,4 +92,31 @@ describe('PlacementBriefModal', () => {
     openSpy.mockRestore();
     vi.unstubAllGlobals();
   });
+
+  it('opens direct choose-product URL when publisher has a numeric ID', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+
+    render(
+      <PlacementBriefModal
+        publisher={{ ...publisher, id: '13278' }}
+        gapTopic="Gap"
+        brandName="Monday"
+        runId="run-1"
+        onClose={() => {}}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Save Brief & Order on Adsy CP/i }));
+    });
+
+    expect(openSpy).toHaveBeenCalledWith(
+      'https://cp.adsy.com/marketer/platform/choose-product/13278',
+      '_blank',
+    );
+    openSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
 });

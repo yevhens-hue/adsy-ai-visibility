@@ -32,6 +32,17 @@ export interface VerifiedPublisher {
   };
 }
 
+export function getAdsyOrderUrl(publisherId?: string | number | null): string {
+  if (publisherId) {
+    const raw = String(publisherId).trim();
+    // Pure numeric ID (e.g. 13278 or '13278')
+    if (/^\d+$/.test(raw)) {
+      return `https://cp.adsy.com/marketer/platform/choose-product/${raw}`;
+    }
+  }
+  return 'https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1';
+}
+
 export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   {
     id: 'pub-101',
@@ -387,7 +398,7 @@ export default function PublisherInventoryTable({
                         <FileText size={14} /> Brief
                       </button>
                       <a 
-                        href={`https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1`}
+                        href={getAdsyOrderUrl(pub.id)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-adsy-green" 
