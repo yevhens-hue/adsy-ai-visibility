@@ -19,7 +19,6 @@ import {
   Globe,
   SlidersHorizontal,
   Clock,
-  ChevronRight,
   Plus,
   Trash2,
   GitCompare,
@@ -238,35 +237,14 @@ export default function ControlPanelAIVisibilityPage() {
 
         {/* Main Content Viewport */}
         <main className="cp-main">
-          {/* Breadcrumb */}
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--adsy-text-secondary)', marginBottom: '8px' }}>
-              <span>Marketer</span>
-              <ChevronRight size={12} />
-              <span>AI Intelligence</span>
-              <ChevronRight size={12} />
-              <strong style={{ color: 'var(--adsy-text-dark)' }}>AI Visibility & Search</strong>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-              <div>
-                <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--adsy-text-dark)', letterSpacing: '-0.02em', margin: 0 }}>
-                  AI Visibility & Media Gap Matcher
-                </h1>
-                <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '13px', margin: '4px 0 0' }}>
-                  Analyze observed brand presence in ChatGPT, Perplexity & Claude, uncover competitor citations, and buy verified publisher placements to close thematic gaps.
-                </p>
-              </div>
-
-              <a 
-                href="https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-adsy-outline"
-              >
-                <ExternalLink size={14} /> Open Live Adsy CP
-              </a>
-            </div>
+          {/* Header */}
+          <div style={{ marginBottom: '20px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--adsy-text-dark)', letterSpacing: '-0.02em', margin: 0 }}>
+              AI Visibility & Media Gap Matcher
+            </h1>
+            <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '13px', margin: '4px 0 0' }}>
+              Analyze observed brand presence in ChatGPT, Perplexity & Claude, uncover competitor citations, and identify verified publisher placements to close thematic gaps.
+            </p>
           </div>
 
           {/* Adsy Style Primary Navigation Tabs */}

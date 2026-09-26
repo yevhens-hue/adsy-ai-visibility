@@ -44,38 +44,6 @@ export default function AdsySidebar({ currentTab, onSelectTab }: AdsySidebarProp
           <span>Saved Reports</span>
         </button>
       </nav>
-
-      {/* Account Info Footer */}
-      <div 
-        style={{ 
-          borderTop: '1px solid var(--adsy-border)', 
-          paddingTop: '14px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '10px' 
-        }}
-      >
-        <div 
-          style={{ 
-            width: '32px', 
-            height: '32px', 
-            borderRadius: '50%', 
-            background: '#F1F5F9', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: '#3E4FEA',
-            fontWeight: 700,
-            fontSize: '12px'
-          }}
-        >
-          VIP
-        </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--adsy-text-dark)' }}>Marketer Mode</div>
-          <div style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>ID: 15537-VIP</div>
-        </div>
-      </div>
     </aside>
   );
 }

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Bell, ShoppingCart, MessageSquare, CreditCard, ChevronDown } from 'lucide-react';
 
 export function AdsyLogoSVG() {
   return (
@@ -19,166 +18,54 @@ export function AdsyLogoSVG() {
 
 export default function AdsyHeader() {
   return (
-    <>
-      {/* Top Banner Alert */}
-      <div className="cp-top-promo">
-        <span>🎁</span>
-        <span>
-          <strong>Limited time offer!</strong> Get <strong>3% extra bonus</strong> for topping up via Bank Wire Transfer or Crypto.
-        </span>
-        <button 
+    <header className="cp-header">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
+          <AdsyLogoSVG />
+        </Link>
+        <span 
           style={{ 
-            border: 'none', 
-            background: '#EAB308', 
-            color: '#1E293B', 
-            padding: '2px 8px', 
-            borderRadius: '4px', 
+            background: '#DCFCE7', 
+            color: '#166534', 
             fontSize: '11px', 
             fontWeight: 800, 
-            cursor: 'pointer' 
+            padding: '4px 10px', 
+            borderRadius: '20px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
           }}
         >
-          Add funds now →
-        </button>
+          AI Visibility
+        </span>
       </div>
 
-      {/* Main Header */}
-      <header className="cp-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
-            <AdsyLogoSVG />
-          </Link>
-          <span 
-            style={{ 
-              background: '#EAF1F6', 
-              color: '#3E4FEA', 
-              fontSize: '11px', 
-              fontWeight: 800, 
-              padding: '4px 10px', 
-              borderRadius: '20px', 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.5px' 
-            }}
-          >
-            Buyer Control Panel
-          </span>
-          <span 
-            style={{ 
-              background: '#DCFCE7', 
-              color: '#166534', 
-              fontSize: '11px', 
-              fontWeight: 800, 
-              padding: '4px 8px', 
-              borderRadius: '20px' 
-            }}
-          >
-            AI Visibility Engine
-          </span>
-        </div>
-
-        {/* Right User Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {/* Live Balance Pill */}
+      {/* Right Product Status Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            padding: '6px 14px', 
+            border: '1px solid #E2E8F0', 
+            borderRadius: '20px', 
+            background: '#F8FAFC', 
+            fontSize: '12px',
+            fontWeight: 600,
+            color: 'var(--adsy-text-dark)'
+          }}
+        >
           <div 
             style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '12px', 
-              background: '#F8FAFC', 
-              padding: '6px 14px', 
-              borderRadius: '30px', 
-              border: '1px solid #E2E8F0',
-              fontSize: '12px'
-            }}
-          >
-            <span>
-              <span style={{ color: '#64748B' }}>Balance: </span>
-              <strong style={{ color: '#0E810C' }}>$120.00</strong>
-            </span>
-            <div style={{ width: '1px', height: '12px', background: '#CBD5E1' }} />
-            <span>
-              <span style={{ color: '#64748B' }}>Reserved: </span>
-              <strong>$0.00</strong>
-            </span>
-            <div style={{ width: '1px', height: '12px', background: '#CBD5E1' }} />
-            <span>
-              <span style={{ color: '#64748B' }}>Bonus: </span>
-              <strong style={{ color: '#3E4FEA' }}>$15.00</strong>
-            </span>
-          </div>
-
-          <button className="btn-adsy-green">
-            <CreditCard size={14} /> Add Funds
-          </button>
-
-          {/* Quick Icons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button className="btn-adsy-outline" style={{ padding: '7px 9px' }} title="Messages">
-              <MessageSquare size={16} color="#64748B" />
-            </button>
-            <button className="btn-adsy-outline" style={{ padding: '7px 9px', position: 'relative' }} title="Notifications">
-              <Bell size={16} color="#64748B" />
-              <span 
-                style={{ 
-                  position: 'absolute', 
-                  top: '-4px', 
-                  right: '-4px', 
-                  background: '#ED254E', 
-                  color: '#FFFFFF', 
-                  fontSize: '9px', 
-                  fontWeight: 800, 
-                  width: '16px', 
-                  height: '16px', 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}
-              >
-                1
-              </span>
-            </button>
-            <button className="btn-adsy-outline" style={{ padding: '7px 9px' }} title="Cart">
-              <ShoppingCart size={16} color="#64748B" />
-            </button>
-          </div>
-
-          {/* User profile dropdown pill */}
-          <div 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              padding: '5px 10px', 
-              border: '1px solid #E2E8F0', 
-              borderRadius: '20px', 
-              background: '#FFFFFF', 
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <div 
-              style={{ 
-                width: '24px', 
-                height: '24px', 
-                borderRadius: '50%', 
-                background: '#3E4FEA', 
-                color: '#FFF', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: '11px',
-                fontWeight: 800
-              }}
-            >
-              Y
-            </div>
-            <span>shaforostov.e@...</span>
-            <ChevronDown size={14} color="#64748B" />
-          </div>
+              width: '8px', 
+              height: '8px', 
+              borderRadius: '50%', 
+              background: '#16A34A' 
+            }} 
+          />
+          <span>Adsy Account Connected</span>
         </div>
-      </header>
-    </>
+      </div>
+    </header>
   );
 }
