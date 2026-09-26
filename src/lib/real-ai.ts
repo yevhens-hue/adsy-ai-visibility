@@ -10,7 +10,7 @@ import {
   CheckSource 
 } from '@/types';
 import { supabase } from './supabase';
-import { KNOWN_ADSY_CATALOG } from '@/components/PublisherInventoryTable';
+import { KNOWN_ADSY_CATALOG } from './adsy-catalog';
 
 function getUUID(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
