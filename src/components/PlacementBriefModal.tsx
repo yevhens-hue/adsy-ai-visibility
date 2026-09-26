@@ -190,7 +190,7 @@ Create an authoritative comparison and workflow analysis demonstrating how ${bra
                 } catch (e) {
                   console.warn('Brief save note:', e);
                 }
-                window.open(getAdsyOrderUrl(publisher.id, publisher.domain), '_blank');
+                window.open(getAdsyOrderUrl(publisher.id, publisher.domain, briefText, gapTopic), '_blank');
               }}
               className="btn-adsy-green"
             >

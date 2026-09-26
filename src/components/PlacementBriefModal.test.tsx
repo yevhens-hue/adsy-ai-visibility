@@ -114,7 +114,11 @@ describe('PlacementBriefModal', () => {
     });
 
     expect(openSpy).toHaveBeenCalledWith(
-      'https://cp.adsy.com/marketer/platform/choose-product/13278',
+      expect.stringContaining('https://cp.adsy.com/marketer/platform/choose-product/13278'),
+      '_blank',
+    );
+    expect(openSpy).toHaveBeenCalledWith(
+      expect.stringContaining('gap=Gap'),
       '_blank',
     );
     openSpy.mockRestore();

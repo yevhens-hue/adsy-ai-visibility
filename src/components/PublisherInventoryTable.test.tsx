@@ -56,6 +56,18 @@ describe('PublisherInventoryTable', () => {
     expect(getAdsyOrderUrl(null)).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
   });
 
+  it('appends brief and gap query parameters to choose-product and platform search URLs', () => {
+    const urlWithParams = getAdsyOrderUrl('13278', null, 'Target workflow brief', 'Brand Recognition');
+    expect(urlWithParams).toContain('https://cp.adsy.com/marketer/platform/choose-product/13278?');
+    expect(urlWithParams).toContain('brief=Target+workflow+brief');
+    expect(urlWithParams).toContain('gap=Brand+Recognition');
+
+    const domainUrlWithParams = getAdsyOrderUrl('pub-101', 'forbes.com', 'Test brief', 'SEO Performance');
+    expect(domainUrlWithParams).toContain('SiteSearch%5Bsite_url%5D=forbes.com');
+    expect(domainUrlWithParams).toContain('brief=Test+brief');
+    expect(domainUrlWithParams).toContain('gap=SEO+Performance');
+  });
+
   it('filters publishers dynamically based on selectedGapTopic, yielding different domains for different gaps', () => {
     // 1. For Brand Awareness gap
     const { unmount } = render(

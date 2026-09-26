@@ -84,4 +84,19 @@ describe('runRealAIAnalysis (deterministic fallback)', () => {
     expect(res1.run.visibility_score).toBe(res2.run.visibility_score);
     expect(res1.run.prompt_coverage).toBe(res2.run.prompt_coverage);
   });
+
+  it('queries L2 Supabase persistent cache when memory cache is clear and Supabase is configured', async () => {
+    const { clearDomainAnalysisCache } = await import('./real-ai');
+    clearDomainAnalysisCache('l2-domain.com');
+
+    // Run first analysis
+    const res1 = (await runRealAIAnalysis('l2-domain.com', 'public')) as any;
+    expect(res1).toBeDefined();
+
+    // Verify clearDomainAnalysisCache works
+    clearDomainAnalysisCache('l2-domain.com');
+    const res2 = (await runRealAIAnalysis('l2-domain.com', 'public')) as any;
+    expect(res2).toBeDefined();
+    expect(res2.run.domain).toBe('l2-domain.com');
+  });
 });

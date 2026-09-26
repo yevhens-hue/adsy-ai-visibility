@@ -148,8 +148,14 @@ export default function ControlPanelAIVisibilityPage() {
     }
   };
 
-  // Init quota, guest session, and fetch real runs from Supabase
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlMode = searchParams.get('mode');
+      if (urlMode === 'guest') {
+        setUserMode('guest');
+      }
+    }
     setQuotaRemaining(getQuotaRemaining());
     setGuestSessionId(getOrCreateGuestSession());
 

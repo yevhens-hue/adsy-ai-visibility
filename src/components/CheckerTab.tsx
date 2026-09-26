@@ -13,6 +13,7 @@ import {
   Layers,
   Globe,
   SlidersHorizontal,
+  Clock,
   Filter
 } from 'lucide-react';
 import { 
@@ -697,9 +698,10 @@ export default function CheckerTab({
                                 </span>
                               )}
                             </div>
-                            <span style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>
-                              {new Date(answer.collected_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>
+                              <Clock size={12} />
+                              <span>Captured: {new Date(answer.collected_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} at {new Date(answer.collected_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC</span>
+                            </div>
                           </div>
 
                           <p style={{ fontSize: '13px', color: 'var(--adsy-text-dark)', lineHeight: 1.6, background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--adsy-border)', margin: '0 0 10px' }}>
@@ -735,6 +737,10 @@ export default function CheckerTab({
                     <span className="badge-adsy-pill badge-ai-green">
                       <CheckCircle2 size={11} /> Brand Mentioned
                     </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--adsy-text-secondary)', marginLeft: 'auto' }}>
+                      <Clock size={12} />
+                      <span>Captured: {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </div>
                   </div>
                   <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--adsy-text-dark)', background: '#F8FAFC', padding: '12px', borderRadius: '8px' }}>
                     {publicResult?.sampleAnswer?.raw_text}

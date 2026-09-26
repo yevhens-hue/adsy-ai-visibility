@@ -154,11 +154,89 @@ export async function runRealAIAnalysis(
 ): Promise<PublicCheckSummary | FullCheckReport> {
   const { domain, brandGuess } = normalizeDomain(inputUrl);
 
-  // Check 24h memory cache for stable, deterministic metrics
+  // Check L1 24h memory cache for fast sub-millisecond retrieval
   const cacheKey = `${mode}:${domain}:${JSON.stringify(customPrompts || [])}:${JSON.stringify(customCompetitors || [])}`;
   const cached = DOMAIN_ANALYSIS_CACHE.get(cacheKey);
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
     return cached.data;
+  }
+
+  // Check L2 persistent distributed cache in Supabase for cross-instance serverless stability
+  const isSupabaseConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder') &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('placeholder')
+  );
+
+  if (isSupabaseConfigured && (!customPrompts || customPrompts.length === 0) && (!customCompetitors || customCompetitors.length === 0)) {
+    try {
+      const since24h = new Date(Date.now() - CACHE_TTL_MS).toISOString();
+      const { data: recentRun } = await supabase
+        .from('check_runs')
+        .select('*')
+        .eq('domain', domain)
+        .eq('mode', mode)
+        .eq('status', 'completed')
+        .gte('created_at', since24h)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (recentRun) {
+        if (mode === 'full') {
+          const [promptsRes, competitorsRes, sourcesRes, gapsRes] = await Promise.all([
+            supabase.from('check_prompts').select('*').eq('run_id', recentRun.id),
+            supabase.from('check_competitors').select('*').eq('run_id', recentRun.id),
+            supabase.from('check_sources').select('*').eq('run_id', recentRun.id),
+            supabase.from('check_gaps').select('*').eq('run_id', recentRun.id),
+          ]);
+
+          const promptIds = promptsRes.data?.map(p => p.id) || [];
+          const { data: answersData } = promptIds.length > 0 
+            ? await supabase.from('ai_answers').select('*').in('prompt_id', promptIds)
+            : { data: [] };
+
+          if (promptsRes.data && promptsRes.data.length > 0) {
+            const fullReport: FullCheckReport = {
+              run: recentRun,
+              prompts: promptsRes.data,
+              competitors: competitorsRes.data || [],
+              sources: sourcesRes.data || [],
+              gaps: gapsRes.data || [],
+              answers: answersData || [],
+            };
+            DOMAIN_ANALYSIS_CACHE.set(cacheKey, { timestamp: Date.now(), data: fullReport });
+            return fullReport;
+          }
+        } else {
+          // Public mode summary from persistent run
+          const [promptsRes, gapsRes] = await Promise.all([
+            supabase.from('check_prompts').select('*').eq('run_id', recentRun.id).limit(5),
+            supabase.from('check_gaps').select('*').eq('run_id', recentRun.id),
+          ]);
+          const firstPromptId = promptsRes.data?.[0]?.id;
+          const { data: sampleAns } = firstPromptId 
+            ? await supabase.from('ai_answers').select('*').eq('prompt_id', firstPromptId).limit(1).maybeSingle()
+            : { data: null };
+
+          if (promptsRes.data && promptsRes.data.length > 0) {
+            const publicSummary: PublicCheckSummary = {
+              run: recentRun,
+              prompts: promptsRes.data,
+              sampleAnswer: sampleAns || undefined,
+              gaps: gapsRes.data || [],
+              competitorsCount: 3,
+              sourcesCount: 6,
+            };
+            DOMAIN_ANALYSIS_CACHE.set(cacheKey, { timestamp: Date.now(), data: publicSummary });
+            return publicSummary;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('L2 Supabase cache lookup note:', e);
+    }
   }
 
   const runId = getUUID();
