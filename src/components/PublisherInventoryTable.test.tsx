@@ -89,4 +89,33 @@ describe('PublisherInventoryTable', () => {
     expect(screen.getByText('thestartupmag.com')).toBeTruthy();
     expect(screen.queryByText('venturebeat.com')).toBeNull();
   });
+
+  it('toggles between gap-only filter and full catalog via toggle button', () => {
+    render(
+      <PublisherInventoryTable 
+        selectedGapTopic="Brand Awareness" 
+        publishersList={SAMPLE_PUBLISHERS} 
+      />
+    );
+
+    // Strict filter initially on: business2community is hidden
+    expect(screen.queryByText('business2community.com')).toBeNull();
+    expect(screen.getByText('venturebeat.com')).toBeTruthy();
+
+    // Click Show All Catalog
+    const showAllBtn = screen.getByRole('button', { name: /Show All Catalog/i });
+    fireEvent.click(showAllBtn);
+
+    // Full catalog is now visible
+    expect(screen.getByText('business2community.com')).toBeTruthy();
+    expect(screen.getByText('venturebeat.com')).toBeTruthy();
+
+    // Click Filter by Gap Only
+    const filterByGapBtn = screen.getByRole('button', { name: /Filter by Gap Only/i });
+    fireEvent.click(filterByGapBtn);
+
+    // Strict filter restored
+    expect(screen.queryByText('business2community.com')).toBeNull();
+    expect(screen.getByText('venturebeat.com')).toBeTruthy();
+  });
 });

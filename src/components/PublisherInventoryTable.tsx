@@ -216,32 +216,44 @@ export function computeGapRelevance(pub: VerifiedPublisher, gapTopic?: string): 
     return { isMatch: true, score: 10, reason: `Targeted for ${gapTopic}` };
   }
 
-  // 2. Brand Awareness / Recognition / Leadership cluster
-  if (cleanGap.includes('brand') || cleanGap.includes('aware') || cleanGap.includes('recogni') || cleanGap.includes('prominen') || cleanGap.includes('top guest') || cleanGap.includes('who are')) {
-    if (gapField.includes('brand') || cat.includes('business') || cat.includes('leadership') || cat.includes('enterprise') || dom.includes('techbullion') || dom.includes('venturebeat') || dom.includes('forbes') || pub.dr >= 85) {
+  // Determine intent category of the gap
+  const isBrandGap = cleanGap.includes('brand') || cleanGap.includes('aware') || cleanGap.includes('recogni') || cleanGap.includes('prominen') || cleanGap.includes('who are') || cleanGap.includes('top guest');
+  const isSeoGap = cleanGap.includes('seo') || cleanGap.includes('search') || cleanGap.includes('rank') || cleanGap.includes('backlink') || cleanGap.includes('traffic') || cleanGap.includes('performance');
+  const isContentGap = cleanGap.includes('content') || cleanGap.includes('qualit') || cleanGap.includes('process') || cleanGap.includes('guide') || cleanGap.includes('measure') || cleanGap.includes('editorial');
+  const isCostGap = cleanGap.includes('cost') || cleanGap.includes('roi') || cleanGap.includes('price') || cleanGap.includes('pricing') || cleanGap.includes('financial') || cleanGap.includes('budget');
+
+  // Check if publisher has designated specialization
+  const pubIsSeo = gapField.includes('seo') || cat.includes('seo') || dom.includes('searchenginewatch');
+  const pubIsContent = gapField.includes('content') || cat.includes('content') || dom.includes('thestartupmag') || dom.includes('contentmarketinginstitute');
+  const pubIsCost = gapField.includes('cost') || gapField.includes('roi') || (cat.includes('finance') && !cat.includes('business')) || dom.includes('financebuzz');
+  const pubIsBrand = gapField.includes('brand') || dom.includes('forbes') || dom.includes('venturebeat') || dom.includes('techbullion') || ((cat.includes('business') || cat.includes('leadership')) && !cat.includes('marketing'));
+
+  if (isBrandGap) {
+    if (pubIsBrand && !pubIsSeo && !pubIsContent && !pubIsCost) {
       return { isMatch: true, score: 9, reason: 'High-DR Brand Authority' };
     }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
   }
 
-  // 3. SEO Performance / Search Authority / Ranking cluster
-  if (cleanGap.includes('seo') || cleanGap.includes('search') || cleanGap.includes('rank') || cleanGap.includes('backlink') || cleanGap.includes('performance') || cleanGap.includes('traffic')) {
-    if (gapField.includes('seo') || cat.includes('seo') || cat.includes('marketing') || cat.includes('digital') || dom.includes('business2community') || dom.includes('searchenginewatch')) {
+  if (isSeoGap) {
+    if (pubIsSeo || cat.includes('marketing') || cat.includes('digital') || dom.includes('business2community')) {
       return { isMatch: true, score: 9, reason: 'SEO & Search Authority Media' };
     }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
   }
 
-  // 4. Content Quality / Editorial / Guides / Execution cluster
-  if (cleanGap.includes('content') || cleanGap.includes('qualit') || cleanGap.includes('process') || cleanGap.includes('guide') || cleanGap.includes('measure') || cleanGap.includes('editorial')) {
-    if (gapField.includes('content') || cat.includes('content') || cat.includes('startup') || cat.includes('productivity') || cat.includes('editorial') || dom.includes('thestartupmag') || dom.includes('contentmarketinginstitute')) {
+  if (isContentGap) {
+    if (pubIsContent || cat.includes('startup') || cat.includes('productivity') || cat.includes('editorial')) {
       return { isMatch: true, score: 9, reason: 'Content Architecture & Guides' };
     }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
   }
 
-  // 5. Cost / Pricing / ROI cluster
-  if (cleanGap.includes('cost') || cleanGap.includes('roi') || cleanGap.includes('price') || cleanGap.includes('pricing') || cleanGap.includes('financial') || cleanGap.includes('budget')) {
-    if (gapField.includes('cost') || cat.includes('finance') || cat.includes('saas') || cat.includes('banking') || dom.includes('financebuzz')) {
+  if (isCostGap) {
+    if (pubIsCost || cat.includes('saas') || cat.includes('banking')) {
       return { isMatch: true, score: 9, reason: 'Financial & ROI Benchmarks' };
     }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
   }
 
   return { isMatch: false, score: 0, reason: 'General Catalog Media' };
@@ -268,6 +280,11 @@ export default function PublisherInventoryTable({
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity'>('all');
   const [filterStrictByGap, setFilterStrictByGap] = useState<boolean>(true);
+
+  const gapMatchesCount = React.useMemo(() => {
+    if (!selectedGapTopic) return 0;
+    return publishers.filter(p => computeGapRelevance(p, selectedGapTopic).isMatch).length;
+  }, [publishers, selectedGapTopic]);
 
   React.useEffect(() => {
     if (publishersList && publishersList.length > 0) {
@@ -390,16 +407,16 @@ export default function PublisherInventoryTable({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
               <span style={{ color: 'var(--adsy-text-secondary)' }}>Targeted Gap:</span>
               <span className="badge-adsy-pill badge-ai-purple" style={{ fontWeight: 700 }}>
-                {selectedGapTopic} ({sortedPublishers.length} matching)
+                {selectedGapTopic} ({filterStrictByGap ? `${filteredPublishers.length} targeted` : `${gapMatchesCount} of ${publishers.length} match`})
               </span>
             </div>
             <button
               type="button"
               onClick={() => setFilterStrictByGap(!filterStrictByGap)}
               className="btn-adsy-outline"
-              style={{ fontSize: '11px', padding: '3px 8px', background: filterStrictByGap ? '#FFFFFF' : '#EFF6FF' }}
+              style={{ fontSize: '11px', padding: '3px 8px', background: filterStrictByGap ? '#FFFFFF' : '#EFF6FF', fontWeight: 600 }}
             >
-              {filterStrictByGap ? 'Show All Catalog' : 'Filter by Gap Only'}
+              {filterStrictByGap ? `Show All Catalog (${publishers.length})` : `Filter by Gap Only (${gapMatchesCount})`}
             </button>
           </div>
         )}
