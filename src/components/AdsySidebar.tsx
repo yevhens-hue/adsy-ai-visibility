@@ -1,17 +1,9 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { 
   Sparkles, 
-  Search, 
-  CheckCircle, 
-  ListOrdered, 
-  FolderGit2, 
-  CreditCard, 
   BarChart3, 
-  Settings,
-  HelpCircle,
   ShieldCheck
 } from 'lucide-react';
 
@@ -24,7 +16,7 @@ export default function AdsySidebar({ currentTab, onSelectTab }: AdsySidebarProp
   return (
     <aside className="cp-sidebar">
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-        <div className="cp-nav-category">AI Intelligence</div>
+        <div className="cp-nav-category">AI Visibility Tools</div>
         
         <button 
           onClick={() => onSelectTab('checker')}
@@ -51,60 +43,6 @@ export default function AdsySidebar({ currentTab, onSelectTab }: AdsySidebarProp
           <BarChart3 size={18} color={currentTab === 'reports' ? '#3E4FEA' : '#64748B'} />
           <span>Saved Reports</span>
         </button>
-
-        <div className="cp-nav-category">Marketplace Navigation</div>
-
-        <a 
-          href="https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="cp-nav-item"
-        >
-          <Search size={18} color="#64748B" />
-          <span>Search for Sites</span>
-        </a>
-
-        <a 
-          href="https://cp.adsy.com/marketer/task" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="cp-nav-item"
-        >
-          <ListOrdered size={18} color="#64748B" />
-          <span>My Tasks & Orders</span>
-        </a>
-
-        <a 
-          href="https://cp.adsy.com/marketer/project" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="cp-nav-item"
-        >
-          <FolderGit2 size={18} color="#64748B" />
-          <span>Projects & Domains</span>
-        </a>
-
-        <a 
-          href="https://cp.adsy.com/marketer/balance" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="cp-nav-item"
-        >
-          <CreditCard size={18} color="#64748B" />
-          <span>Balance & Invoices</span>
-        </a>
-
-        <div className="cp-nav-category">Support & Help</div>
-
-        <a 
-          href="https://adsy.com/faq" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="cp-nav-item"
-        >
-          <HelpCircle size={18} color="#64748B" />
-          <span>Help & Guidelines</span>
-        </a>
       </nav>
 
       {/* Account Info Footer */}
