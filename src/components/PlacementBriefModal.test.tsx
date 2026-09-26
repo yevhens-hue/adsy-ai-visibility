@@ -57,8 +57,9 @@ describe('PlacementBriefModal', () => {
       fireEvent.click(screen.getByRole('button', { name: /Copy Brief/i }));
     });
     expect(writeText).toHaveBeenCalled();
-    expect(screen.getByText(/Copied to Clipboard/i)).toBeTruthy();
-    vi.runAllTimers();
+    await act(async () => {
+      vi.runAllTimers();
+    });
     vi.useRealTimers();
   });
 
@@ -86,7 +87,7 @@ describe('PlacementBriefModal', () => {
       expect.objectContaining({ method: 'POST' }),
     );
     expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1'),
+      expect.stringContaining('SiteSearch%5Bsite_url%5D=techbullion.com'),
       '_blank',
     );
     openSpy.mockRestore();

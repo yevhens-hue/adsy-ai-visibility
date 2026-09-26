@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import AdsyHeader from '@/components/AdsyHeader';
 import AdsySidebar from '@/components/AdsySidebar';
 import PublisherInventoryTable, { VerifiedPublisher, SAMPLE_PUBLISHERS } from '@/components/PublisherInventoryTable';
+import CatalogTab from '@/components/CatalogTab';
+import HistoryTab from '@/components/HistoryTab';
 import PlacementBriefModal from '@/components/PlacementBriefModal';
 import ReportComparisonModal from '@/components/ReportComparisonModal';
 import { 
@@ -602,7 +604,7 @@ export default function ControlPanelAIVisibilityPage() {
                   <div className="cp-panel" style={{ marginBottom: '20px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', borderBottom: '1px solid var(--adsy-border)', paddingBottom: '16px' }}>
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                           <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--adsy-text-dark)', margin: 0 }}>
                             {currentRun.brand_name}
                           </h2>
@@ -612,10 +614,31 @@ export default function ControlPanelAIVisibilityPage() {
                           <span className="badge-adsy-pill badge-ai-green">
                             <CheckCircle2 size={11} /> {userMode === 'marketer' ? '45 Observations Verified' : '15 Observations Verified'}
                           </span>
+                          <span 
+                            className="badge-adsy-pill" 
+                            style={{ background: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            title="Citational ground-truth modeled via AI simulation and indexed publisher knowledge base"
+                          >
+                            <Sparkles size={11} /> AI Simulation & Knowledge Base Retrieval
+                          </span>
                         </div>
                         <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '13px', margin: 0 }}>
                           Evaluated against ChatGPT, Perplexity & Claude (US market, English). Date: {new Date(currentRun.created_at).toLocaleDateString()}
                         </p>
+                        <div style={{ marginTop: '10px', padding: '8px 12px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                          <span className="badge-adsy-pill badge-ai-green" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px' }}>CASE PROOF</span>
+                          <span style={{ fontSize: '12px', color: '#166534', fontWeight: 600 }}>
+                            Verified tier-1 media placements drove +38% AI visibility growth in 30 days.
+                          </span>
+                          <a 
+                            href="https://cp.adsy.com/user/registration?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '11px', color: '#15803D', fontWeight: 700, textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            Case Studies <ExternalLink size={10} />
+                          </a>
+                        </div>
                       </div>
 
                       <div style={{ display: 'flex', gap: '8px' }}>
@@ -997,9 +1020,15 @@ export default function ControlPanelAIVisibilityPage() {
                             <span style={{ fontSize: '12px', color: '#92400E' }}>
                               Sign in to your Adsy account to unlock all 15 raw answers across ChatGPT, Perplexity & Claude.
                             </span>
-                            <button onClick={() => setUserMode('marketer')} className="btn-adsy-blue" style={{ fontSize: '12px', padding: '6px 12px' }}>
-                              Unlock All Answers
-                            </button>
+                            <a 
+                              href="https://cp.adsy.com/user/registration?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-adsy-blue" 
+                              style={{ fontSize: '12px', padding: '6px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            >
+                              Unlock All Answers <ExternalLink size={12} />
+                            </a>
                           </div>
                         </div>
                       )}
@@ -1129,9 +1158,15 @@ export default function ControlPanelAIVisibilityPage() {
                             <p style={{ fontSize: '13px', color: 'var(--adsy-text-secondary)', maxWidth: '440px', margin: '0 0 16px' }}>
                               See which competitors are dominating AI citations for your queries and discover the exact media outlets recommending them.
                             </p>
-                            <button onClick={() => setUserMode('marketer')} className="btn-adsy-blue" style={{ padding: '10px 22px', fontSize: '14px' }}>
-                              Sign In to Adsy to Reveal Competitors
-                            </button>
+                            <a 
+                              href="https://cp.adsy.com/user/registration?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="btn-adsy-blue" 
+                              style={{ padding: '10px 22px', fontSize: '14px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                            >
+                              Sign In / Register on Adsy <ExternalLink size={14} />
+                            </a>
                           </div>
                         </div>
                       ) : (
@@ -1244,131 +1279,32 @@ export default function ControlPanelAIVisibilityPage() {
 
           {/* TAB 2: Verified Platforms (AI Search & Catalog) */}
           {activeMainTab === 'inventory' && (
-            <div>
-              {/* Selected Gap Context Banner */}
-              {selectedGap && (
-                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '8px', padding: '12px 18px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Sparkles size={18} color="var(--adsy-blue)" />
-                    <div>
-                      <span style={{ fontSize: '12px', color: '#1E40AF', fontWeight: 700 }}>
-                        Active Media Strategy Filter:
-                      </span>
-                      <strong style={{ fontSize: '13px', color: '#1E3A8A', display: 'block' }}>
-                        {selectedGap}
-                      </strong>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setSelectedGap(undefined)}
-                    className="btn-adsy-outline"
-                    style={{ fontSize: '11px', padding: '4px 10px', background: '#FFFFFF' }}
-                  >
-                    Clear Filter
-                  </button>
-                </div>
-              )}
-
-              {/* Publisher Inventory Table matching cp.adsy.com/marketer/platform */}
-              <PublisherInventoryTable 
-                selectedGapTopic={selectedGap}
-                publishersList={currentCatalogPublishers}
-                highlightedDomain={highlightedDomain}
-                currentDomain={currentRun?.domain || (url ? url.trim().toLowerCase() : undefined)}
-                onBackToReport={() => setActiveMainTab('checker')}
-                onOpenBriefModal={(pub: VerifiedPublisher) => setBriefPublisher(pub)}
-              />
-            </div>
+            <CatalogTab 
+              selectedGap={selectedGap}
+              onClearGap={() => setSelectedGap(undefined)}
+              publishersList={currentCatalogPublishers}
+              highlightedDomain={highlightedDomain}
+              currentDomain={currentRun?.domain || (url ? url.trim().toLowerCase() : undefined)}
+              onBackToReport={() => setActiveMainTab('checker')}
+              onOpenBriefModal={(pub: VerifiedPublisher) => setBriefPublisher(pub)}
+            />
           )}
 
-          {/* TAB 3: Saved Runs History & Run Comparison (Section 5.2 / Q12 TZ) */}
+          {/* TAB 3: Saved Runs History & Run Comparison */}
           {activeMainTab === 'reports' && (
-            <div className="cp-panel" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '14px 18px', background: '#F8FAFC', borderBottom: '1px solid var(--adsy-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <strong style={{ fontSize: '14px', color: 'var(--adsy-text-dark)' }}>
-                    Historical AI Visibility Runs ({savedReports.length})
-                  </strong>
-                  <p style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)', margin: '2px 0 0' }}>
-                    Select any two runs to generate an automated Diff View (Visibility Score delta, newly gained & lost mentions).
-                  </p>
-                </div>
-
-                <button 
-                  onClick={handleTriggerComparison}
-                  disabled={selectedForComparison.length !== 2}
-                  className="btn-adsy-blue"
-                  style={{ fontSize: '12px', padding: '6px 14px', opacity: selectedForComparison.length === 2 ? 1 : 0.5 }}
-                >
-                  <GitCompare size={14} /> Compare 2 Selected Runs ({selectedForComparison.length}/2)
-                </button>
-              </div>
-
-              <table className="table-adsy">
-                <thead>
-                  <tr>
-                    <th style={{ width: '40px' }}>Diff</th>
-                    <th>Date / Timestamp</th>
-                    <th>Domain</th>
-                    <th>Mode</th>
-                    <th>Visibility Score</th>
-                    <th>Prompt Coverage</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {savedReports.map(({ run }) => {
-                    const isChecked = selectedForComparison.includes(run.id);
-                    return (
-                      <tr key={run.id} style={{ background: isChecked ? '#EFF6FF' : 'transparent' }}>
-                        <td>
-                          <input 
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                if (selectedForComparison.length < 2) {
-                                  setSelectedForComparison(prev => [...prev, run.id]);
-                                }
-                              } else {
-                                setSelectedForComparison(prev => prev.filter(id => id !== run.id));
-                              }
-                            }}
-                          />
-                        </td>
-                        <td>
-                          <strong>{new Date(run.created_at).toLocaleDateString()}</strong>
-                          <div style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>
-                            {new Date(run.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </td>
-                        <td><strong>{run.domain}</strong></td>
-                        <td>
-                          <span className="badge-adsy-pill" style={{ background: run.mode === 'full' ? '#EDE9FE' : '#F1F5F9', color: run.mode === 'full' ? '#6D28D9' : '#475569' }}>
-                            {run.mode.toUpperCase()}
-                          </span>
-                        </td>
-                        <td>
-                          <strong style={{ color: 'var(--adsy-blue)' }}>{run.visibility_score}%</strong>
-                        </td>
-                        <td>
-                          <strong>{run.prompt_coverage}%</strong>
-                        </td>
-                        <td>
-                          <button 
-                            onClick={() => loadSavedRun(run.id)}
-                            className="btn-adsy-outline"
-                            style={{ padding: '4px 10px', fontSize: '11px' }}
-                          >
-                            Load Report
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <HistoryTab 
+              savedReports={savedReports}
+              selectedForComparison={selectedForComparison}
+              onToggleCompareRun={(runId) => {
+                if (selectedForComparison.includes(runId)) {
+                  setSelectedForComparison(prev => prev.filter(id => id !== runId));
+                } else if (selectedForComparison.length < 2) {
+                  setSelectedForComparison(prev => [...prev, runId]);
+                }
+              }}
+              onTriggerComparison={handleTriggerComparison}
+              onLoadSavedRun={loadSavedRun}
+            />
           )}
         </main>
       </div>

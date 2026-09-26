@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import PublisherInventoryTable, { SAMPLE_PUBLISHERS, getAdsyOrderUrl } from './PublisherInventoryTable';
 import { VerifiedPublisher } from './PublisherInventoryTable';
@@ -6,6 +6,14 @@ import { VerifiedPublisher } from './PublisherInventoryTable';
 describe('PublisherInventoryTable', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ publishers: SAMPLE_PUBLISHERS })
+    }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders sample publishers by default', () => {
@@ -40,10 +48,11 @@ describe('PublisherInventoryTable', () => {
     expect(screen.getByText('techbullion.com')).toBeTruthy();
   });
 
-  it('generates choose-product URL for numeric ID and catalog search URL otherwise', () => {
+  it('generates choose-product URL for numeric ID and domain-prefilled search URL otherwise', () => {
     expect(getAdsyOrderUrl('13278')).toBe('https://cp.adsy.com/marketer/platform/choose-product/13278');
     expect(getAdsyOrderUrl(13278)).toBe('https://cp.adsy.com/marketer/platform/choose-product/13278');
-    expect(getAdsyOrderUrl('pub-101')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
+    expect(getAdsyOrderUrl('pub-101', 'forbes.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=forbes.com&SiteSearch%5Bverified%5D=1');
+    expect(getAdsyOrderUrl(null, 'techbullion.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=techbullion.com&SiteSearch%5Bverified%5D=1');
     expect(getAdsyOrderUrl(null)).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
   });
 });

@@ -32,13 +32,17 @@ export interface VerifiedPublisher {
   };
 }
 
-export function getAdsyOrderUrl(publisherId?: string | number | null): string {
+export function getAdsyOrderUrl(publisherId?: string | number | null, domain?: string | null): string {
   if (publisherId) {
     const raw = String(publisherId).trim();
     // Pure numeric ID (e.g. 13278 or '13278')
     if (/^\d+$/.test(raw)) {
       return `https://cp.adsy.com/marketer/platform/choose-product/${raw}`;
     }
+  }
+  if (domain && domain.trim()) {
+    const cleanDomain = domain.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+    return `https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=${encodeURIComponent(cleanDomain)}&SiteSearch%5Bverified%5D=1`;
   }
   return 'https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1';
 }
@@ -398,7 +402,7 @@ export default function PublisherInventoryTable({
                         <FileText size={14} /> Brief
                       </button>
                       <a 
-                        href={getAdsyOrderUrl(pub.id)}
+                        href={getAdsyOrderUrl(pub.id, pub.domain)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-adsy-green" 

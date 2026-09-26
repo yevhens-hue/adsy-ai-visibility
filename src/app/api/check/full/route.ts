@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRealAIAnalysis } from '@/lib/real-ai';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const rateCheck = checkRateLimit(`full-${ip}`, { maxRequests: 10, windowSeconds: 60 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Rate limit exceeded. Please wait a moment before running another full analysis.',
+          retryAfter: rateCheck.resetInSeconds 
+        },
+        { 
+          status: 429,
+          headers: { 'Retry-After': String(rateCheck.resetInSeconds) }
+        }
+      );
+    }
+
     const body = await req.json();
     const url = body.url || body.domain;
 
