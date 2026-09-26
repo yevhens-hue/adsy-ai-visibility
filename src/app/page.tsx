@@ -102,6 +102,8 @@ export default function ControlPanelAIVisibilityPage() {
   // Filters inside Prompts & Sources tabs
   const [promptFilterType, setPromptFilterType] = useState<string>('all');
   const [sourceFilterInCatalog, setSourceFilterInCatalog] = useState<boolean>(false);
+  const [answerPlatformFilter, setAnswerPlatformFilter] = useState<'all' | 'ChatGPT' | 'Perplexity' | 'Claude'>('all');
+  const [selectedPromptForAnswer, setSelectedPromptForAnswer] = useState<string | null>(null);
 
   // Selected gap for inventory matching
   const [selectedGap, setSelectedGap] = useState<string | undefined>(undefined);
@@ -806,50 +808,119 @@ export default function ControlPanelAIVisibilityPage() {
                   {activeReportTab === 'answers' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       {fullReport ? (
-                        fullReport.answers.slice(0, 9).map((answer) => (
-                          <div key={answer.id} className="cp-panel" style={{ padding: '16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <>
+                          {/* Engine Filter Bar & Prompt Filter Indicator */}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', background: '#FFFFFF', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--adsy-text-dark)' }}>Filter by Engine:</span>
+                              <button 
+                                onClick={() => setAnswerPlatformFilter('all')}
+                                className={`badge-adsy-pill ${answerPlatformFilter === 'all' ? 'badge-ai-blue' : ''}`}
+                                style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+                              >
+                                All ({fullReport.answers.length})
+                              </button>
+                              <button 
+                                onClick={() => setAnswerPlatformFilter('ChatGPT')}
+                                className={`badge-adsy-pill ${answerPlatformFilter === 'ChatGPT' ? 'badge-ai-green' : ''}`}
+                                style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+                              >
+                                ChatGPT ({fullReport.answers.filter(a => a.platform === 'ChatGPT').length})
+                              </button>
+                              <button 
+                                onClick={() => setAnswerPlatformFilter('Perplexity')}
+                                className={`badge-adsy-pill ${answerPlatformFilter === 'Perplexity' ? 'badge-ai-purple' : ''}`}
+                                style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+                              >
+                                Perplexity ({fullReport.answers.filter(a => a.platform === 'Perplexity').length})
+                              </button>
+                              <button 
+                                onClick={() => setAnswerPlatformFilter('Claude')}
+                                className={`badge-adsy-pill ${answerPlatformFilter === 'Claude' ? 'badge-ai-blue' : ''}`}
+                                style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
+                              >
+                                Claude ({fullReport.answers.filter(a => a.platform === 'Claude').length})
+                              </button>
+                            </div>
+
+                            {selectedPromptForAnswer && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span className="badge-adsy-pill" style={{ background: '#112C3E', color: '#FFFFFF', fontWeight: 700 }}>
-                                  {answer.platform}
+                                <span style={{ fontSize: '12px', color: 'var(--adsy-blue)', fontWeight: 600 }}>
+                                  Prompt Filter Active
                                 </span>
-                                {answer.brand_mentioned ? (
-                                  <span className="badge-adsy-pill badge-ai-green">
-                                    <CheckCircle2 size={11} /> Brand Mentioned
-                                  </span>
-                                ) : (
-                                  <span className="badge-adsy-pill" style={{ background: '#FEE2E2', color: '#991B1B' }}>
-                                    Brand Missing
-                                  </span>
-                                )}
-                              </div>
-                              <span style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>
-                                {new Date(answer.collected_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-
-                            <p style={{ fontSize: '13px', color: 'var(--adsy-text-dark)', lineHeight: 1.6, background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--adsy-border)', margin: '0 0 10px' }}>
-                              {answer.raw_text}
-                            </p>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--adsy-text-secondary)' }}>
-                                Citations Returned:
-                              </span>
-                              {answer.citations.map((cite, cIdx) => (
-                                <a 
-                                  key={cIdx} 
-                                  href={cite} 
-                                  target="_blank" 
-                                  rel="noreferrer" 
-                                  style={{ fontSize: '11px', color: 'var(--adsy-blue)', textDecoration: 'none', background: '#EFF6FF', padding: '2px 8px', borderRadius: '4px' }}
+                                <button 
+                                  onClick={() => setSelectedPromptForAnswer(null)}
+                                  className="btn-adsy-outline"
+                                  style={{ padding: '3px 8px', fontSize: '11px' }}
                                 >
-                                  {new URL(cite).hostname} <ExternalLink size={10} style={{ display: 'inline' }} />
-                                </a>
-                              ))}
-                            </div>
+                                  Clear Filter
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        ))
+
+                          {/* Answers Cards */}
+                          {fullReport.answers
+                            .filter(a => answerPlatformFilter === 'all' || a.platform === answerPlatformFilter)
+                            .filter(a => !selectedPromptForAnswer || a.prompt_id === selectedPromptForAnswer)
+                            .map((answer) => {
+                              const promptForAnswer = fullReport.prompts.find(p => p.id === answer.prompt_id);
+                              return (
+                                <div key={answer.id} className="cp-panel" style={{ padding: '16px' }}>
+                                  {promptForAnswer && (
+                                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--adsy-text-dark)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span style={{ color: 'var(--adsy-text-secondary)', fontWeight: 500 }}>Target Query:</span>
+                                      &ldquo;{promptForAnswer.text}&rdquo;
+                                      <span className="badge-adsy-pill" style={{ fontSize: '10px', textTransform: 'capitalize' }}>
+                                        {promptForAnswer.prompt_type}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span className="badge-adsy-pill" style={{ background: '#112C3E', color: '#FFFFFF', fontWeight: 700 }}>
+                                        {answer.platform}
+                                      </span>
+                                      {answer.brand_mentioned ? (
+                                        <span className="badge-adsy-pill badge-ai-green">
+                                          <CheckCircle2 size={11} /> Brand Mentioned
+                                        </span>
+                                      ) : (
+                                        <span className="badge-adsy-pill" style={{ background: '#FEE2E2', color: '#991B1B' }}>
+                                          Brand Missing
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>
+                                      {new Date(answer.collected_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+
+                                  <p style={{ fontSize: '13px', color: 'var(--adsy-text-dark)', lineHeight: 1.6, background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--adsy-border)', margin: '0 0 10px' }}>
+                                    {answer.raw_text}
+                                  </p>
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--adsy-text-secondary)' }}>
+                                      Citations Returned:
+                                    </span>
+                                    {answer.citations.map((cite, cIdx) => (
+                                      <a 
+                                        key={cIdx} 
+                                        href={cite} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        style={{ fontSize: '11px', color: 'var(--adsy-blue)', textDecoration: 'none', background: '#EFF6FF', padding: '2px 8px', borderRadius: '4px' }}
+                                      >
+                                        {new URL(cite).hostname} <ExternalLink size={10} style={{ display: 'inline' }} />
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </>
                       ) : (
                         <div className="cp-panel" style={{ padding: '16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
