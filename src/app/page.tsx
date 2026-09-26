@@ -40,6 +40,40 @@ const CHECK_STEPS = [
   'Computing Visibility Score, prompt coverage & identifying strategic gaps...'
 ];
 
+const QUOTA_MAX = 3;
+const QUOTA_KEY = 'adsy_ai_quota';
+const QUOTA_MONTH_KEY = 'adsy_ai_quota_month';
+const GUEST_SESSION_KEY = 'adsy_ai_guest_session';
+
+function getOrCreateGuestSession(): string {
+  if (typeof window === 'undefined') return '';
+  let sid = sessionStorage.getItem(GUEST_SESSION_KEY);
+  if (!sid) {
+    sid = `guest-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    sessionStorage.setItem(GUEST_SESSION_KEY, sid);
+  }
+  return sid;
+}
+
+function getQuotaRemaining(): number {
+  if (typeof window === 'undefined') return QUOTA_MAX;
+  const currentMonth = new Date().toISOString().slice(0, 7); // "2026-09"
+  const savedMonth = localStorage.getItem(QUOTA_MONTH_KEY);
+  if (savedMonth !== currentMonth) {
+    localStorage.setItem(QUOTA_MONTH_KEY, currentMonth);
+    localStorage.setItem(QUOTA_KEY, String(QUOTA_MAX));
+    return QUOTA_MAX;
+  }
+  return parseInt(localStorage.getItem(QUOTA_KEY) || String(QUOTA_MAX), 10);
+}
+
+function decrementQuota(): number {
+  const current = getQuotaRemaining();
+  const next = Math.max(0, current - 1);
+  localStorage.setItem(QUOTA_KEY, String(next));
+  return next;
+}
+
 export default function ControlPanelAIVisibilityPage() {
   // Navigation & User State
   const [activeMainTab, setActiveMainTab] = useState<'checker' | 'inventory' | 'reports'>('checker');
@@ -50,6 +84,12 @@ export default function ControlPanelAIVisibilityPage() {
   const [loading, setLoading] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Monthly quota state (Section 2.2 TZ - 3 free runs/month)
+  const [quotaRemaining, setQuotaRemaining] = useState<number>(QUOTA_MAX);
+
+  // Guest session ID persisted in sessionStorage (Section 1.2 TZ)
+  const [guestSessionId, setGuestSessionId] = useState<string>('');
 
   // Custom prompt & competitor builder (Section 2.2 TZ)
   const [showConfigDrawer, setShowConfigDrawer] = useState(false);
@@ -86,14 +126,23 @@ export default function ControlPanelAIVisibilityPage() {
   const [savedReports, setSavedReports] = useState<{ run: CheckRun; prompts: CheckPrompt[] }[]>([]);
   const [selectedForComparison, setSelectedForComparison] = useState<string[]>([]);
 
-  // Initial auto-run to populate UI seamlessly
+  // Init quota and guest session from storage
   useEffect(() => {
-    handleRunAnalysis('monday.com', userMode === 'marketer');
+    setQuotaRemaining(getQuotaRemaining());
+    setGuestSessionId(getOrCreateGuestSession());
+    handleRunAnalysis('monday.com', true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRunAnalysis = async (targetDomain?: string, isFull = userMode === 'marketer') => {
     const domainToCheck = targetDomain || url;
     if (!domainToCheck.trim()) return;
+
+    // Quota gate for full analysis (Section 2.2 TZ - 3 runs/month)
+    if (isFull && quotaRemaining <= 0) {
+      setError('Monthly quota exhausted (3/3 used). Quota resets on the 1st of next month.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -107,7 +156,7 @@ export default function ControlPanelAIVisibilityPage() {
       const endpoint = isFull ? '/api/check/full' : '/api/check/public';
       const bodyPayload = isFull
         ? { url: domainToCheck, customPrompts, customCompetitors }
-        : { url: domainToCheck };
+        : { url: domainToCheck, guestSessionId };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -133,6 +182,9 @@ export default function ControlPanelAIVisibilityPage() {
           { run: rep.run, prompts: rep.prompts },
           ...prev.filter(r => r.run.id !== rep.run.id)
         ]);
+        // Decrement monthly quota on successful full run
+        const newQuota = decrementQuota();
+        setQuotaRemaining(newQuota);
       } else {
         const pub: PublicCheckSummary = json.data;
         setPublicResult(pub);
@@ -409,7 +461,7 @@ export default function ControlPanelAIVisibilityPage() {
                     <div style={{ display: 'flex', gap: '16px' }}>
                       <span>Mode: <strong>{userMode === 'marketer' ? 'Pro 15-Prompt Audit' : 'Free Public 5-Prompt'}</strong></span>
                       <span>Engines: <strong>ChatGPT, Perplexity, Claude</strong> ({userMode === 'marketer' ? '45' : '15'} queries)</span>
-                      <span>Monthly quota: <strong>3/3 remaining</strong></span>
+                      <span>Monthly quota: <strong style={{ color: quotaRemaining === 0 ? '#DC2626' : quotaRemaining === 1 ? '#F59E0B' : 'inherit' }}>{quotaRemaining}/{QUOTA_MAX} remaining</strong></span>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <span onClick={() => { setUrl('monday.com'); handleRunAnalysis('monday.com'); }} style={{ color: 'var(--adsy-blue)', cursor: 'pointer', fontWeight: 600 }}>Try monday.com</span>
