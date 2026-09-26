@@ -94,3 +94,42 @@ export interface PublicCheckSummary {
   competitorsCount: number;
   sourcesCount: number;
 }
+
+export interface FullCheckReport {
+  run: CheckRun;
+  site?: Site;
+  prompts: CheckPrompt[];
+  answers: AIAnswer[];
+  sources: CheckSource[];
+  competitors: CheckCompetitor[];
+  gaps: CheckGap[];
+}
+
+export interface RunComparisonDiff {
+  run1: CheckRun;
+  run2: CheckRun;
+  visibilityScoreDelta: number; // in percentage points
+  promptCoverageDelta: number; // in percentage points
+  brandMentionShareDelta: number | null;
+  newMentions: string[];
+  lostMentions: string[];
+  commonPromptsCount: number;
+}
+
+export interface PlacementBriefData {
+  id: string;
+  run_id: string;
+  gap_id: string;
+  target_brand: string;
+  target_domain: string;
+  gap_topic: string;
+  gap_priority: 'high' | 'medium' | 'low';
+  target_prompts: string[];
+  publisher_domain: string;
+  publisher_price: number;
+  why_this_site: string;
+  writer_instructions: string;
+  reference_sources: string[];
+  created_at: string;
+}
+

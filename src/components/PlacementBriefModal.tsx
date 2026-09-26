@@ -155,14 +155,43 @@ Create an authoritative comparison and workflow analysis demonstrating how ${bra
             <button onClick={onClose} className="btn-adsy-outline">
               Close
             </button>
-            <a 
-              href={`https://cp.adsy.com/marketer/choose-product?site=${publisher.domain}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button 
+              onClick={async () => {
+                try {
+                  await fetch('/api/brief/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      id: typeof crypto !== 'undefined' ? crypto.randomUUID() : 'brief-' + Date.now(),
+                      run_id: 'active-run',
+                      gap_id: 'active-gap',
+                      target_brand: brandName,
+                      target_domain: publisher.domain,
+                      gap_topic: gapTopic,
+                      gap_priority: 'high',
+                      target_prompts: [
+                        `What are the best platforms for ${brandName} workflows in 2026?`,
+                        `How does ${brandName} compare to industry alternatives?`
+                      ],
+                      publisher_domain: publisher.domain,
+                      publisher_price: publisher.pricePlacement,
+                      why_this_site: publisher.aiVisibility?.relevantToGap 
+                        ? `Relevant to gap: ${publisher.aiVisibility.relevantToGap}. Cited in ${publisher.aiVisibility.citedInEngines?.join(', ')}.`
+                        : 'Verified Adsy platform with high authority and relevant category indexing.',
+                      writer_instructions: briefText,
+                      reference_sources: [publisher.domain],
+                      created_at: new Date().toISOString()
+                    })
+                  });
+                } catch (e) {
+                  console.warn('Brief save note:', e);
+                }
+                window.open(`https://cp.adsy.com/marketer/choose-product?site=${publisher.domain}`, '_blank');
+              }}
               className="btn-adsy-green"
             >
-              Continue to Adsy Order <ExternalLink size={14} />
-            </a>
+              Save Brief & Order on Adsy CP <ExternalLink size={14} />
+            </button>
           </div>
         </div>
       </div>
