@@ -71,23 +71,24 @@ export function getAdsyOrderUrl(
 }
 
 export const KNOWN_ADSY_CATALOG: Record<string, { id: string; domain: string; basePrice: number }> = {
-  'techbullion.com': { id: '13278', domain: 'techbullion.com', basePrice: 185.00 },
-  'msn.com': { id: '86010', domain: 'msn.com', basePrice: 750.00 },
-  'metapress.com': { id: '55774', domain: 'metapress.com', basePrice: 145.00 },
-  'urbansplatter.com': { id: '50706', domain: 'urbansplatter.com', basePrice: 120.00 },
-  'bignewsnetwork.com': { id: '51871', domain: 'bignewsnetwork.com', basePrice: 180.00 },
-  'livepositively.com': { id: '120758', domain: 'livepositively.com', basePrice: 95.00 },
-  'programminginsider.com': { id: '56240', domain: 'programminginsider.com', basePrice: 165.00 },
-  'ipsnews.net': { id: '51869', domain: 'ipsnews.net', basePrice: 260.00 },
-  'anationofmoms.com': { id: '9773', domain: 'anationofmoms.com', basePrice: 85.00 },
-  'elevatedmagazines.com': { id: '93053', domain: 'elevatedmagazines.com', basePrice: 110.00 },
-  '2amagazine.com': { id: '380227', domain: '2amagazine.com', basePrice: 95.00 },
-  'zillow.com': { id: '150653', domain: 'zillow.com', basePrice: 890.00 },
-  'venturebeat.com': { id: 'pub-102', domain: 'venturebeat.com', basePrice: 650.00 },
-  'forbes.com': { id: 'pub-108', domain: 'forbes.com', basePrice: 1250.00 },
-  'techtimes.com': { id: 'pub-110', domain: 'techtimes.com', basePrice: 195.00 },
+  'techbullion.com': { id: '13278', domain: 'techbullion.com', basePrice: 73.80 },
+  'msn.com': { id: '86010', domain: 'msn.com', basePrice: 239.99 },
+  'metapress.com': { id: '55774', domain: 'metapress.com', basePrice: 49.50 },
+  'urbansplatter.com': { id: '50706', domain: 'urbansplatter.com', basePrice: 68.00 },
+  'bignewsnetwork.com': { id: '51871', domain: 'bignewsnetwork.com', basePrice: 37.58 },
+  'livepositively.com': { id: '120758', domain: 'livepositively.com', basePrice: 51.00 },
+  'programminginsider.com': { id: '56240', domain: 'programminginsider.com', basePrice: 55.43 },
+  'ipsnews.net': { id: '51869', domain: 'ipsnews.net', basePrice: 49.00 },
+  'anationofmoms.com': { id: '9773', domain: 'anationofmoms.com', basePrice: 37.50 },
+  'elevatedmagazines.com': { id: '93053', domain: 'elevatedmagazines.com', basePrice: 37.50 },
+  '2amagazine.com': { id: '380227', domain: '2amagazine.com', basePrice: 40.00 },
+  'zillow.com': { id: '150653', domain: 'zillow.com', basePrice: 93.00 },
+  'thestartupmag.com': { id: '13132', domain: 'thestartupmag.com', basePrice: 79.50 },
+  'venturebeat.com': { id: '97966', domain: 'venturebeat.com', basePrice: 1529.18 },
+  'techtimes.com': { id: '14493', domain: 'techtimes.com', basePrice: 1079.96 },
   'business2community.com': { id: '18368', domain: 'business2community.com', basePrice: 2386.33 },
-  'thestartupmag.com': { id: 'pub-104', domain: 'thestartupmag.com', basePrice: 120.00 },
+  'searchenginejournal.com': { id: '146186', domain: 'searchenginejournal.com', basePrice: 689.97 },
+  'forbes.com': { id: '60417', domain: 'forbes.com', basePrice: 1250.00 },
   'contentmarketinginstitute.com': { id: 'pub-107', domain: 'contentmarketinginstitute.com', basePrice: 580.00 },
   'financebuzz.com': { id: 'pub-103', domain: 'financebuzz.com', basePrice: 240.00 },
 };
@@ -103,7 +104,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 68,
     traffic: '320,000',
     completionRate: '98%',
-    pricePlacement: 185.00,
+    pricePlacement: 73.80,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
@@ -114,7 +115,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-102',
+    id: '97966',
     domain: 'venturebeat.com',
     category: 'Enterprise Tech & AI',
     country: 'US',
@@ -123,7 +124,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 86,
     traffic: '2,400,000',
     completionRate: '95%',
-    pricePlacement: 650.00,
+    pricePlacement: 1529.18,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
@@ -134,7 +135,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-108',
+    id: '60417',
     domain: 'forbes.com',
     category: 'Global Business, Leadership & Tech',
     country: 'US',
@@ -154,7 +155,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-110',
+    id: '14493',
     domain: 'techtimes.com',
     category: 'Consumer Tech & Emerging Trends',
     country: 'US',
@@ -163,7 +164,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 62,
     traffic: '410,000',
     completionRate: '97%',
-    pricePlacement: 195.00,
+    pricePlacement: 1079.96,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: false,
@@ -203,7 +204,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 74,
     traffic: '520,000',
     completionRate: '98%',
-    pricePlacement: 260.00,
+    pricePlacement: 49.00,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
@@ -214,7 +215,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     },
   },
   {
-    id: 'pub-104',
+    id: '13132',
     domain: 'thestartupmag.com',
     category: 'Startups & Productivity Tools',
     country: 'US',
@@ -223,7 +224,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 58,
     traffic: '85,000',
     completionRate: '99%',
-    pricePlacement: 120.00,
+    pricePlacement: 79.50,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: false,
@@ -244,7 +245,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '890,000',
     completionRate: '97%',
     pricePlacement: 580.00,
-    isInAdsy: true,
+    isInAdsy: false,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 8,
@@ -263,7 +264,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 65,
     traffic: '210,000',
     completionRate: '97%',
-    pricePlacement: 145.00,
+    pricePlacement: 49.50,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
@@ -284,7 +285,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     traffic: '480,000',
     completionRate: '97%',
     pricePlacement: 240.00,
-    isInAdsy: true,
+    isInAdsy: false,
     aiVisibility: {
       seenInAi: true,
       citationsCount: 3,
@@ -303,7 +304,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 68,
     traffic: '340,000',
     completionRate: '96%',
-    pricePlacement: 180.00,
+    pricePlacement: 37.58,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: true,
@@ -323,7 +324,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     da: 54,
     traffic: '160,000',
     completionRate: '97%',
-    pricePlacement: 120.00,
+    pricePlacement: 68.00,
     isInAdsy: true,
     aiVisibility: {
       seenInAi: false,
