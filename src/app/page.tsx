@@ -87,14 +87,8 @@ export default function ControlPanelAIVisibilityPage() {
 
   // Custom prompt & competitor builder (Section 2.2 TZ)
   const [showConfigDrawer, setShowConfigDrawer] = useState(false);
-  const [customPrompts, setCustomPrompts] = useState<string[]>([
-    'What are the best agile project boards in 2026?',
-    'How to automate sprint planning with monday.com?'
-  ]);
-  const [customCompetitors, setCustomCompetitors] = useState<{ name: string; domain: string }[]>([
-    { name: 'Asana', domain: 'asana.com' },
-    { name: 'ClickUp', domain: 'clickup.com' }
-  ]);
+  const [customPrompts, setCustomPrompts] = useState<string[]>([]);
+  const [customCompetitors, setCustomCompetitors] = useState<{ name: string; domain: string }[]>([]);
   const [newCompetitorName, setNewCompetitorName] = useState('');
   const [newCompetitorDomain, setNewCompetitorDomain] = useState('');
 
@@ -120,11 +114,50 @@ export default function ControlPanelAIVisibilityPage() {
   const [savedReports, setSavedReports] = useState<{ run: CheckRun; prompts: CheckPrompt[] }[]>([]);
   const [selectedForComparison, setSelectedForComparison] = useState<string[]>([]);
 
-  // Init quota and guest session from storage
+  // Function to load a specific run from Supabase
+  const loadSavedRun = async (runId: string) => {
+    try {
+      const res = await fetch(`/api/runs?id=${runId}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          const loaded: FullCheckReport = json.data;
+          setFullReport(loaded);
+          setPublicResult(null);
+          setUrl(loaded.run.domain);
+          if (loaded.gaps && loaded.gaps.length > 0) {
+            setSelectedGap(loaded.gaps[0].topic);
+          }
+          setActiveMainTab('checker');
+        }
+      }
+    } catch (e) {
+      console.warn('Error loading run details:', e);
+    }
+  };
+
+  // Init quota, guest session, and fetch real runs from Supabase
   useEffect(() => {
     setQuotaRemaining(getQuotaRemaining());
     setGuestSessionId(getOrCreateGuestSession());
-    handleRunAnalysis('monday.com', true);
+
+    async function initHistory() {
+      try {
+        const res = await fetch('/api/runs');
+        if (res.ok) {
+          const json = await res.json();
+          const runs: CheckRun[] = json.data || [];
+          if (runs.length > 0) {
+            setSavedReports(runs.map(r => ({ run: r, prompts: [] })));
+            // Load the most recent real run
+            await loadSavedRun(runs[0].id);
+          }
+        }
+      } catch (e) {
+        console.warn('Error fetching runs history:', e);
+      }
+    }
+    initHistory();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1154,11 +1187,7 @@ export default function ControlPanelAIVisibilityPage() {
                         </td>
                         <td>
                           <button 
-                            onClick={() => {
-                              setUrl(run.domain);
-                              handleRunAnalysis(run.domain, run.mode === 'full');
-                              setActiveMainTab('checker');
-                            }}
+                            onClick={() => loadSavedRun(run.id)}
                             className="btn-adsy-outline"
                             style={{ padding: '4px 10px', fontSize: '11px' }}
                           >
@@ -1180,7 +1209,9 @@ export default function ControlPanelAIVisibilityPage() {
         <PlacementBriefModal 
           publisher={briefPublisher}
           gapTopic={selectedGap || 'Enterprise Workflow Category Solutions'}
-          brandName={currentRun?.brand_name || 'monday.com'}
+          brandName={currentRun?.brand_name || 'Brand'}
+          runId={currentRun?.id}
+          gapId={currentGaps.find(g => g.topic === selectedGap)?.id}
           onClose={() => setBriefPublisher(null)}
         />
       )}

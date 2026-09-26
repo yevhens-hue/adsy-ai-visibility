@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generatePublicAnalysis } from '@/lib/checker';
-import { supabase } from '@/lib/supabase';
+import { runRealAIAnalysis } from '@/lib/real-ai';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,27 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const analysis = generatePublicAnalysis(url);
-
-    // If Supabase is connected with real keys, persist run
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
-      try {
-        await supabase.from('check_runs').insert({
-          id: analysis.run.id,
-          domain: analysis.run.domain,
-          brand_name: analysis.run.brand_name,
-          mode: 'public',
-          status: 'completed',
-          visibility_score: analysis.run.visibility_score,
-          prompt_coverage: analysis.run.prompt_coverage,
-          brand_mention_share: analysis.run.brand_mention_share,
-          platforms: analysis.run.platforms,
-          prompts_count: analysis.run.prompts_count,
-        });
-      } catch (dbErr) {
-        console.warn('Supabase persistence fallback (proceeding with memory result):', dbErr);
-      }
-    }
+    const analysis = await runRealAIAnalysis(url, 'public');
 
     return NextResponse.json({
       success: true,

@@ -133,12 +133,36 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
 
 interface PublisherInventoryTableProps {
   selectedGapTopic?: string;
+  publishersList?: VerifiedPublisher[];
   onOpenBriefModal?: (publisher: VerifiedPublisher) => void;
 }
 
-export default function PublisherInventoryTable({ selectedGapTopic, onOpenBriefModal }: PublisherInventoryTableProps) {
+export default function PublisherInventoryTable({ selectedGapTopic, publishersList, onOpenBriefModal }: PublisherInventoryTableProps) {
+  const [publishers, setPublishers] = useState<VerifiedPublisher[]>(publishersList || SAMPLE_PUBLISHERS);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<'all' | 'seen_in_ai' | 'high_opportunity'>('all');
+
+  React.useEffect(() => {
+    if (publishersList && publishersList.length > 0) {
+      setPublishers(publishersList);
+      return;
+    }
+
+    async function fetchInventory() {
+      try {
+        const res = await fetch('/api/inventory');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && json.data.length > 0) {
+            setPublishers(json.data);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load inventory from API:', e);
+      }
+    }
+    fetchInventory();
+  }, [publishersList]);
 
   const toggleFavorite = (id: string) => {
     setFavorites((prev) => {
@@ -149,7 +173,7 @@ export default function PublisherInventoryTable({ selectedGapTopic, onOpenBriefM
     });
   };
 
-  const filteredPublishers = SAMPLE_PUBLISHERS.filter((p) => {
+  const filteredPublishers = publishers.filter((p) => {
     if (activeFilter === 'seen_in_ai' && !p.aiVisibility.seenInAi) return false;
     if (activeFilter === 'high_opportunity' && p.aiVisibility.aiOpportunity !== 'High') return false;
     return true;

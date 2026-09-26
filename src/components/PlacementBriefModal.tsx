@@ -8,6 +8,8 @@ interface PlacementBriefModalProps {
   publisher: VerifiedPublisher;
   gapTopic: string;
   brandName: string;
+  runId?: string;
+  gapId?: string;
   onClose: () => void;
 }
 
@@ -15,6 +17,8 @@ export default function PlacementBriefModal({
   publisher,
   gapTopic,
   brandName,
+  runId,
+  gapId,
   onClose,
 }: PlacementBriefModalProps) {
   const [copied, setCopied] = useState(false);
@@ -163,8 +167,8 @@ Create an authoritative comparison and workflow analysis demonstrating how ${bra
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       id: typeof crypto !== 'undefined' ? crypto.randomUUID() : 'brief-' + Date.now(),
-                      run_id: 'active-run',
-                      gap_id: 'active-gap',
+                      run_id: runId || (typeof crypto !== 'undefined' ? crypto.randomUUID() : undefined),
+                      gap_id: gapId || null,
                       target_brand: brandName,
                       target_domain: publisher.domain,
                       gap_topic: gapTopic,
