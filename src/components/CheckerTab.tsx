@@ -363,7 +363,7 @@ export default function CheckerTab({
                     Verified tier-1 media placements drove +38% AI visibility growth in 30 days.
                   </span>
                   <a 
-                    href="https://cp.adsy.com/user/registration?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                    href="https://adsy.com/blog?s=case+study"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ fontSize: '11px', color: '#15803D', fontWeight: 700, textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
@@ -750,7 +750,7 @@ export default function CheckerTab({
                       Sign in to your Adsy account to unlock all 15 raw answers across ChatGPT, Perplexity & Claude.
                     </span>
                     <a 
-                      href="https://cp.adsy.com/user/registration?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                      href="https://adsy.com/sign-up?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-adsy-blue" 
@@ -869,7 +869,7 @@ export default function CheckerTab({
                       See which competitors are dominating AI citations for your queries and discover the exact media outlets recommending them.
                     </p>
                     <a 
-                      href="https://cp.adsy.com/user/registration?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                      href="https://adsy.com/sign-up?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-adsy-blue" 
