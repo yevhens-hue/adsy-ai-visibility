@@ -13,6 +13,17 @@ function hashString(str: string): number {
   return Math.abs(hash);
 }
 
+function getUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 /**
  * Generates an automatic 5-prompt public analysis for a domain
  * following Section 1.2 and Q1 of the Functional Specification.
@@ -20,12 +31,12 @@ function hashString(str: string): number {
 export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
   const { domain, brandGuess } = normalizeDomain(inputUrl);
   const hash = hashString(domain);
-  const runId = `run-${hash.toString(36)}-${Date.now().toString(36)}`;
+  const runId = getUUID();
 
   // 1. Generate 5 prompts (category, comparison, alternative, problem, brand)
   const prompts: CheckPrompt[] = [
     {
-      id: `${runId}-p1`,
+      id: getUUID(),
       run_id: runId,
       text: `What are the best platforms for ${brandGuess.toLowerCase()} workflows in 2026?`,
       topic: 'Market Category Solutions',
@@ -35,7 +46,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
       created_at: new Date().toISOString(),
     },
     {
-      id: `${runId}-p2`,
+      id: getUUID(),
       run_id: runId,
       text: `How does ${brandGuess} compare to top industry competitors?`,
       topic: 'Competitive Benchmark',
@@ -45,7 +56,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
       created_at: new Date().toISOString(),
     },
     {
-      id: `${runId}-p3`,
+      id: getUUID(),
       run_id: runId,
       text: `What are the leading alternatives to ${brandGuess} for mid-size teams?`,
       topic: 'Alternative Vendors',
@@ -55,7 +66,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
       created_at: new Date().toISOString(),
     },
     {
-      id: `${runId}-p4`,
+      id: getUUID(),
       run_id: runId,
       text: `How do businesses solve onboarding latency in ${brandGuess.toLowerCase()} platforms?`,
       topic: 'User Pain Points',
@@ -65,7 +76,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
       created_at: new Date().toISOString(),
     },
     {
-      id: `${runId}-p5`,
+      id: getUUID(),
       run_id: runId,
       text: `Is ${brandGuess} suitable for enterprise compliance and security standards?`,
       topic: 'Enterprise Fit',
@@ -90,7 +101,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
   // 3. Up to 2 key gaps (Q1 TZ: "до 2 выявленных gaps")
   const gaps: CheckGap[] = [
     {
-      id: `${runId}-gap1`,
+      id: getUUID(),
       run_id: runId,
       topic: 'Enterprise Workflow Solutions Comparison',
       gap_type: 'missing_with_competitors',
@@ -99,7 +110,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
       prompts_list: [prompts[0].text, prompts[3].text],
     },
     {
-      id: `${runId}-gap2`,
+      id: getUUID(),
       run_id: runId,
       topic: 'Cost Efficiency & ROI Benchmarks',
       gap_type: 'weak_presence',
@@ -111,7 +122,7 @@ export function generatePublicAnalysis(inputUrl: string): PublicCheckSummary {
 
   // 4. Sample answer with verified citations
   const sampleAnswer: AIAnswer = {
-    id: `${runId}-ans1`,
+    id: getUUID(),
     prompt_id: prompts[0].id,
     platform: 'Perplexity',
     raw_text: `When evaluating platforms for this domain, primary recommendations include several established tools known for team productivity and automated workflows. Leading options frequently mentioned by industry reviewers include market standards with modular table views and deep integration ecosystems.`,
