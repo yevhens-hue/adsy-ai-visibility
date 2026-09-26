@@ -136,13 +136,15 @@ export async function runRealAIAnalysis(
   const targetPromptsCount = mode === 'full' ? 15 : 5;
   const rawKey = process.env.OPENAI_API_KEY || '';
   const apiKey = rawKey.replace(/^["']|["']$/g, '').trim();
+  const rawPplxKey = process.env.PERPLEXITY_API_KEY || '';
+  const perplexityKey = rawPplxKey.replace(/^["']|["']$/g, '').trim();
 
   // 1. Fetch live domain metadata for grounding
   const metadata = await fetchDomainMetadata(domain);
 
   let evalData: OpenAIEvalResponse | null = null;
 
-  if (apiKey) {
+  if (apiKey || perplexityKey) {
     try {
       const customPStr = customPrompts && customPrompts.length > 0 
         ? `Mandatory user target queries to include: ${JSON.stringify(customPrompts)}.` 
@@ -211,25 +213,59 @@ Return a strict, valid JSON object matching this schema:
 ${customPStr}
 ${customCStr}`;
 
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: systemPrompt }],
-          response_format: { type: 'json_object' },
-          temperature: 0.2,
-        }),
-      });
+      // 1. Try Perplexity Sonar API if key present (direct live AI search query)
+      if (perplexityKey) {
+        try {
+          const pplxRes = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${perplexityKey}`,
+            },
+            body: JSON.stringify({
+              model: 'sonar-pro',
+              messages: [{ role: 'user', content: systemPrompt + '\nIMPORTANT: Respond with pure valid JSON matching the schema only.' }],
+              temperature: 0.2,
+            }),
+          });
+          if (pplxRes.ok) {
+            const pplxJson = await pplxRes.json();
+            const raw = pplxJson.choices?.[0]?.message?.content || '';
+            const match = raw.match(/\{[\s\S]*\}/);
+            if (match) {
+              const parsed = JSON.parse(match[0]);
+              if (parsed && Array.isArray(parsed.prompts) && parsed.prompts.length > 0) {
+                evalData = parsed;
+              }
+            }
+          }
+        } catch (pplxErr) {
+          console.warn('Perplexity Sonar API call failed, trying OpenAI fallback:', pplxErr);
+        }
+      }
 
-      if (res.ok) {
-        const json = await res.json();
-        const parsed = JSON.parse(json.choices[0].message.content);
-        if (parsed && Array.isArray(parsed.prompts) && parsed.prompts.length > 0) {
-          evalData = parsed;
+      // 2. Try OpenAI gpt-4o-mini if evalData is still null and apiKey is present
+      if (!evalData && apiKey) {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: systemPrompt }],
+            response_format: { type: 'json_object' },
+            temperature: 0.2,
+          }),
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          const parsed = JSON.parse(json.choices[0].message.content);
+          if (parsed && Array.isArray(parsed.prompts) && parsed.prompts.length > 0) {
+            evalData = parsed;
+          }
         }
       }
     } catch (apiErr) {

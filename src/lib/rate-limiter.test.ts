@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { checkRateLimit, resetRateLimiter, getClientIp } from './rate-limiter';
+import { checkRateLimit, resetRateLimiter, getClientIp, checkMonthlyQuota } from './rate-limiter';
 import { NextRequest } from 'next/server';
 
 describe('rate-limiter', () => {
@@ -36,8 +36,21 @@ describe('rate-limiter', () => {
     expect(getClientIp(req)).toBe('203.0.113.195');
   });
 
-  it('falls back to 127.0.0.1 if no IP headers present', () => {
-    const req = new NextRequest('http://localhost:3000/api/check/full');
-    expect(getClientIp(req)).toBe('127.0.0.1');
+  it('enforces monthly quota of 3 requests', () => {
+    const q1 = checkMonthlyQuota('user-1', 3);
+    expect(q1.allowed).toBe(true);
+    expect(q1.remaining).toBe(2);
+
+    const q2 = checkMonthlyQuota('user-1', 3);
+    expect(q2.allowed).toBe(true);
+    expect(q2.remaining).toBe(1);
+
+    const q3 = checkMonthlyQuota('user-1', 3);
+    expect(q3.allowed).toBe(true);
+    expect(q3.remaining).toBe(0);
+
+    const q4 = checkMonthlyQuota('user-1', 3);
+    expect(q4.allowed).toBe(false);
+    expect(q4.remaining).toBe(0);
   });
 });

@@ -4,7 +4,13 @@ interface RateLimitRecord {
   timestamps: number[];
 }
 
+interface MonthlyQuotaRecord {
+  month: string;
+  count: number;
+}
+
 const rateLimitStore = new Map<string, RateLimitRecord>();
+const monthlyQuotaStore = new Map<string, MonthlyQuotaRecord>();
 
 export interface RateLimitOptions {
   maxRequests: number;
@@ -17,8 +23,44 @@ export interface RateLimitResult {
   resetInSeconds: number;
 }
 
+export interface MonthlyQuotaResult {
+  allowed: boolean;
+  remaining: number;
+  month: string;
+}
+
 export function resetRateLimiter(): void {
   rateLimitStore.clear();
+  monthlyQuotaStore.clear();
+}
+
+export function checkMonthlyQuota(identifier: string, maxMonthly = 3): MonthlyQuotaResult {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const record = monthlyQuotaStore.get(identifier);
+  if (!record || record.month !== currentMonth) {
+    monthlyQuotaStore.set(identifier, { month: currentMonth, count: 1 });
+    return {
+      allowed: true,
+      remaining: Math.max(0, maxMonthly - 1),
+      month: currentMonth,
+    };
+  }
+
+  if (record.count >= maxMonthly) {
+    return {
+      allowed: false,
+      remaining: 0,
+      month: currentMonth,
+    };
+  }
+
+  record.count += 1;
+  monthlyQuotaStore.set(identifier, record);
+  return {
+    allowed: true,
+    remaining: Math.max(0, maxMonthly - record.count),
+    month: currentMonth,
+  };
 }
 
 export function getClientIp(req: NextRequest): string {

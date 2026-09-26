@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRealAIAnalysis } from '@/lib/real-ai';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limiter';
+import { checkRateLimit, checkMonthlyQuota, getClientIp } from '@/lib/rate-limiter';
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +20,20 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    const isGuest = body.isGuest || body.mode === 'guest';
+    if (isGuest) {
+      const quota = checkMonthlyQuota(`guest-${ip}`, 3);
+      if (!quota.allowed) {
+        return NextResponse.json(
+          { 
+            error: 'Monthly quota of 3 free AI Visibility audits exceeded for this billing period. Please register or sign in to your Adsy account for unlimited access.',
+            remaining: 0,
+            quotaExceeded: true 
+          },
+          { status: 403 }
+        );
+      }
+    }
     const url = body.url || body.domain;
 
     if (!url || typeof url !== 'string' || url.trim().length === 0) {
