@@ -86,7 +86,7 @@ describe('PlacementBriefModal', () => {
       expect.objectContaining({ method: 'POST' }),
     );
     expect(openSpy).toHaveBeenCalledWith(
-      expect.stringContaining('cp.adsy.com/marketer/choose-product?site=techbullion.com'),
+      expect.stringContaining('cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1'),
       '_blank',
     );
     openSpy.mockRestore();

@@ -190,7 +190,7 @@ Create an authoritative comparison and workflow analysis demonstrating how ${bra
                 } catch (e) {
                   console.warn('Brief save note:', e);
                 }
-                window.open(`https://cp.adsy.com/marketer/choose-product?site=${publisher.domain}`, '_blank');
+                window.open('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1', '_blank');
               }}
               className="btn-adsy-green"
             >

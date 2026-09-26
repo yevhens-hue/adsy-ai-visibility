@@ -387,7 +387,7 @@ export default function PublisherInventoryTable({
                         <FileText size={14} /> Brief
                       </button>
                       <a 
-                        href={`https://cp.adsy.com/marketer/choose-product?site=${pub.domain}`}
+                        href={`https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn-adsy-green" 
