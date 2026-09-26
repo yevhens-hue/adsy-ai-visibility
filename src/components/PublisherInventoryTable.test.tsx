@@ -67,9 +67,9 @@ describe('PublisherInventoryTable', () => {
   it('generates choose-product URL for numeric ID and domain-prefilled search URL otherwise', () => {
     expect(getAdsyOrderUrl('13278')).toBe('https://cp.adsy.com/marketer/platform/choose-product/13278');
     expect(getAdsyOrderUrl(13278)).toBe('https://cp.adsy.com/marketer/platform/choose-product/13278');
-    expect(getAdsyOrderUrl('pub-101', 'forbes.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=forbes.com&SiteSearch%5Bverified%5D=1');
-    expect(getAdsyOrderUrl(null, 'techbullion.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=techbullion.com&SiteSearch%5Bverified%5D=1');
-    expect(getAdsyOrderUrl(null)).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1');
+    expect(getAdsyOrderUrl('pub-101', 'forbes.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=forbes.com');
+    expect(getAdsyOrderUrl(null, 'techbullion.com')).toBe('https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=techbullion.com');
+    expect(getAdsyOrderUrl(null)).toBe('https://cp.adsy.com/marketer/platform');
   });
 
   it('appends brief and gap query parameters to choose-product and platform search URLs', () => {

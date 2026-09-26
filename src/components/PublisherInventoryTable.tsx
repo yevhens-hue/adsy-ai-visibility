@@ -58,15 +58,15 @@ export function getAdsyOrderUrl(
 
   if (domain && domain.trim()) {
     const cleanDomain = domain.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
-    let url = `https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=${encodeURIComponent(cleanDomain)}&SiteSearch%5Bverified%5D=1`;
+    let url = `https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=${encodeURIComponent(cleanDomain)}`;
     const qs = params.toString();
     return qs ? `${url}&${qs}` : url;
   }
 
   const qs = params.toString();
   return qs 
-    ? `https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1&${qs}` 
-    : 'https://cp.adsy.com/marketer/platform?SiteSearch%5Bverified%5D=1';
+    ? `https://cp.adsy.com/marketer/platform?${qs}` 
+    : 'https://cp.adsy.com/marketer/platform';
 }
 
 export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
@@ -186,21 +186,21 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   },
   {
     id: 'pub-111',
-    domain: 'techtarget.com',
-    category: 'Enterprise IT & Search Infrastructure',
+    domain: 'ipsnews.net',
+    category: 'International News & Search Authority',
     country: 'US',
     language: 'English',
-    dr: 88,
-    da: 82,
-    traffic: '1,800,000',
-    completionRate: '96%',
-    pricePlacement: 490.00,
+    dr: 81,
+    da: 74,
+    traffic: '520,000',
+    completionRate: '98%',
+    pricePlacement: 260.00,
     aiVisibility: {
-      seenInAi: false,
-      citationsCount: 0,
+      seenInAi: true,
+      citationsCount: 5,
       relevantToGap: 'SEO Performance & Search Authority',
-      aiOpportunity: 'Medium',
-      citedInEngines: [],
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity'],
     },
   },
   {
@@ -243,21 +243,21 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   },
   {
     id: 'pub-112',
-    domain: 'copyblogger.com',
-    category: 'Content Writing & Copy Strategy',
+    domain: 'metapress.com',
+    category: 'Editorial Guides & Publishing Authority',
     country: 'US',
     language: 'English',
-    dr: 81,
-    da: 72,
-    traffic: '280,000',
-    completionRate: '98%',
-    pricePlacement: 275.00,
+    dr: 77,
+    da: 65,
+    traffic: '210,000',
+    completionRate: '97%',
+    pricePlacement: 145.00,
     aiVisibility: {
-      seenInAi: false,
-      citationsCount: 0,
+      seenInAi: true,
+      citationsCount: 4,
       relevantToGap: 'Content Quality & Execution Guides',
-      aiOpportunity: 'Medium',
-      citedInEngines: [],
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Claude'],
     },
   },
   {
@@ -281,21 +281,21 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   },
   {
     id: 'pub-113',
-    domain: 'benzinga.com',
-    category: 'Financial Markets, Trading & Software',
+    domain: 'bignewsnetwork.com',
+    category: 'Global Business, Financial & Syndi Network',
     country: 'US',
     language: 'English',
-    dr: 85,
-    da: 79,
-    traffic: '4,200,000',
-    completionRate: '95%',
-    pricePlacement: 380.00,
+    dr: 75,
+    da: 68,
+    traffic: '340,000',
+    completionRate: '96%',
+    pricePlacement: 180.00,
     aiVisibility: {
-      seenInAi: false,
-      citationsCount: 0,
+      seenInAi: true,
+      citationsCount: 3,
       relevantToGap: 'Cost Efficiency & ROI Benchmarks',
-      aiOpportunity: 'Medium',
-      citedInEngines: [],
+      aiOpportunity: 'High',
+      citedInEngines: ['Perplexity'],
     },
   },
 ];
