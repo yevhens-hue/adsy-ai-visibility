@@ -411,9 +411,24 @@ export default function ControlPanelAIVisibilityPage() {
                   </div>
 
                   {/* Status bar */}
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '10px', fontSize: '12px', color: 'var(--adsy-text-secondary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '10px', fontSize: '12px', color: 'var(--adsy-text-secondary)' }}>
                     <span>Engines: <strong>ChatGPT, Perplexity, Claude</strong> — 45 queries</span>
-                    <span>Monthly quota: <strong style={{ color: quotaRemaining === 0 ? '#DC2626' : quotaRemaining === 1 ? '#F59E0B' : 'inherit' }}>{quotaRemaining}/{QUOTA_MAX} remaining</strong></span>
+                    <span>
+                      Monthly quota: <strong style={{ color: quotaRemaining === 0 ? '#DC2626' : quotaRemaining === 1 ? '#F59E0B' : 'inherit' }}>{quotaRemaining}/{QUOTA_MAX} remaining</strong>
+                      {quotaRemaining === 0 && (
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            localStorage.setItem('adsy_ai_quota', '3');
+                            setQuotaRemaining(3);
+                            setError(null);
+                          }}
+                          style={{ border: 'none', background: 'transparent', color: 'var(--adsy-blue)', textDecoration: 'underline', cursor: 'pointer', fontSize: '11px', marginLeft: '6px' }}
+                        >
+                          (Reset for test)
+                        </button>
+                      )}
+                    </span>
                   </div>
                 </form>
 
@@ -498,9 +513,25 @@ export default function ControlPanelAIVisibilityPage() {
                 )}
 
                 {error && (
-                  <div style={{ marginTop: '16px', background: 'var(--adsy-red-light)', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px', color: '#991B1B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AlertCircle size={16} />
-                    <span>{error}</span>
+                  <div style={{ marginTop: '16px', background: 'var(--adsy-red-light)', border: '1px solid #FECACA', borderRadius: '8px', padding: '12px 16px', color: '#991B1B', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AlertCircle size={16} />
+                      <span>{error}</span>
+                    </div>
+                    {quotaRemaining === 0 && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          localStorage.setItem('adsy_ai_quota', '3');
+                          setQuotaRemaining(3);
+                          setError(null);
+                        }}
+                        className="btn-adsy-outline"
+                        style={{ fontSize: '11px', padding: '4px 10px', background: '#FFFFFF' }}
+                      >
+                        Reset Quota (Test)
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
