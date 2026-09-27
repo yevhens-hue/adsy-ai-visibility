@@ -57,7 +57,8 @@ adsy-ai-visibility (Next.js 16 App Router / TypeScript)
 | **Prompt Injection Defense** | `src/lib/security.test.ts` | Strips jailbreak vectors, bounds external metadata in `<untrusted_site_metadata>` | ✅ VERIFIED |
 | **Zod API Input Validation** | `src/lib/schemas.test.ts` | All API routes (`/check/public`, `/check/full`, `/brief/save`, `/runs`) strictly validated | ✅ VERIFIED |
 | **Production Build** | `npm run build` | Zero TypeScript errors, Turbopack clean compile | ✅ VERIFIED |
-| **Production Deployment** | Git Push + Vercel Deployment | Live on `https://adsy-ai-visibility.vercel.app` (commit `71f90cf`) | ✅ VERIFIED |
+| **Production Deployment** | Git Push + Vercel Deployment | Live on `https://adsy-ai-visibility.vercel.app` (commit `a709546`) | ✅ VERIFIED |
+| **Zero Mock Baseline** | `page.tsx` & `CheckerTab.tsx` | Auto-loading of old demo runs removed, clean empty state, all prices bound strictly to Adsy CP catalog | ✅ VERIFIED |
 | **Adsy Catalog Alignment** | `src/lib/adsy-catalog.ts` | 20+ verified publishers, real CP IDs (`97966`, `60417`, etc.), live prices ($320, $1250, $1529.18) | ✅ VERIFIED |
 | **Dynamic Niche Gaps** | `curl -X POST .../api/check/public` | `business2community.com` → "Emerging AI Technologies", `zillow.com` → "Real Estate Trends" | ✅ VERIFIED |
 | **Category Overwrite Fix** | Live inspect `/api/inventory` | Real categories displayed (*Technology & Software Systems*, *Enterprise AI*), zero synthetic `[Brand] AI Citations` | ✅ VERIFIED |
