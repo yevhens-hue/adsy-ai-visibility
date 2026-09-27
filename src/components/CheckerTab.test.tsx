@@ -70,7 +70,7 @@ describe('CheckerTab', () => {
 
     expect(screen.getByText('Visibility Score')).toBeTruthy();
     expect(screen.getByText('80%')).toBeTruthy();
-    expect(screen.getByText(/AI Simulation & Knowledge Base Retrieval/i)).toBeTruthy();
+    expect(screen.getByText(/Live Web Search & Citations/i)).toBeTruthy();
 
     const submitBtn = screen.getByRole('button', { name: /Run Full Analysis/i });
     fireEvent.click(submitBtn);

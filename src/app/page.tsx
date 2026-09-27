@@ -169,6 +169,14 @@ export default function ControlPanelAIVisibilityPage() {
           const runs: CheckRun[] = json.data || [];
           if (runs.length > 0) {
             setSavedReports(runs.map(r => ({ run: r, prompts: [] })));
+            // Prioritize loading adsy.com run on initial landing
+            const adsyRun = runs.find(r => r.domain === 'adsy.com') || runs[0];
+            if (adsyRun) {
+              loadSavedRun(adsyRun.id);
+            }
+          } else {
+            // First time landing: auto-run live analysis for adsy.com
+            handleRunAnalysis('adsy.com', false);
           }
         }
       } catch (e) {

@@ -254,7 +254,8 @@ export async function runRealAIAnalysis(
         .limit(1)
         .maybeSingle();
 
-      if (recentRun) {
+      const hasLiveSearch = Boolean(recentRun && Array.isArray(recentRun.platforms) && recentRun.platforms.some((p: string) => p.toLowerCase().includes('tavily') || p.toLowerCase().includes('live')));
+      if (recentRun && hasLiveSearch) {
         if (mode === 'full') {
           const [promptsRes, competitorsRes, sourcesRes, gapsRes] = await Promise.all([
             supabase.from('check_prompts').select('*').eq('run_id', recentRun.id),

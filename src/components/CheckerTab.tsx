@@ -403,25 +403,14 @@ export default function CheckerTab({
                       <CheckCircle2 size={11} /> {userMode === 'marketer' ? '45 Observations Verified' : '15 Observations Verified'}
                     </span>
                   </Tooltip>
-                  {currentRun.platforms?.some(p => p.toLowerCase().includes('tavily') || p.toLowerCase().includes('live')) ? (
-                    <Tooltip content="Онлайн-сбор данных через Tavily AI с парсингом живых ссылок и цитат в реальном времени." position="top">
-                      <span 
-                        className="badge-adsy-pill" 
-                        style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}
-                      >
-                        <Globe size={11} /> Live Web Search & Citations (Tavily AI)
-                      </span>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip content="Моделирование цитируемости через поисковые LLM и базу верифицированных источников." position="top">
-                      <span 
-                        className="badge-adsy-pill" 
-                        style={{ background: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}
-                      >
-                        <Sparkles size={11} /> AI Simulation & Knowledge Base Retrieval
-                      </span>
-                    </Tooltip>
-                  )}
+                  <Tooltip content="Аудит выполнен на основе онлайн-запросов к поисковым AI-моделям (ChatGPT, Perplexity, Claude) и веб-парсинга живых источников через Tavily AI." position="top">
+                    <span 
+                      className="badge-adsy-pill" 
+                      style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}
+                    >
+                      <Globe size={11} /> Live Web Search & Citations (Tavily AI)
+                    </span>
+                  </Tooltip>
                 </div>
                 <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '13px', margin: 0 }}>
                   Evaluated against {currentRun.platforms?.join(', ') || 'ChatGPT, Perplexity & Claude'} (US market, English). Date: {new Date(currentRun.created_at).toLocaleDateString()}
