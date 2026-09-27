@@ -154,6 +154,14 @@ export default function ReportComparisonModal({ diff, onClose }: Props) {
             )}
           </div>
 
+          {/* Methodology note from Concept-2 Slide 18 */}
+          <div style={{ padding: '12px 14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)', marginBottom: '20px', fontSize: '12px', color: 'var(--adsy-text-secondary)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+            <span style={{ fontWeight: 700, color: 'var(--adsy-text-dark)', whiteSpace: 'nowrap' }}>Comparable Conditions:</span>
+            <span>
+              Prompts, AI engines, and language settings should be consistent between runs. Visibility fluctuations reflect AI probabilistic dynamics and do not singularly prove or disprove the isolated effect of an individual publication.
+            </span>
+          </div>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button 
               onClick={onClose}

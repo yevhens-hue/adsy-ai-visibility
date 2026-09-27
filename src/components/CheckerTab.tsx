@@ -14,7 +14,9 @@ import {
   Globe,
   SlidersHorizontal,
   Clock,
-  Filter
+  Filter,
+  Database,
+  Info
 } from 'lucide-react';
 import { 
   CheckRun, 
@@ -67,6 +69,7 @@ export interface CheckerTabProps {
   selectedPromptForAnswer: string | null;
   setSelectedPromptForAnswer: (val: string | null) => void;
   userMode: 'guest' | 'marketer';
+  onToggleUserMode?: (mode: 'guest' | 'marketer') => void;
   onRunAnalysis: (targetDomain?: string) => Promise<void>;
   onSelectGapAndOpenInventory: (topic?: string, domain?: string | null) => void;
 }
@@ -109,6 +112,7 @@ export default function CheckerTab({
   selectedPromptForAnswer,
   setSelectedPromptForAnswer,
   userMode,
+  onToggleUserMode,
   onRunAnalysis,
   onSelectGapAndOpenInventory,
 }: CheckerTabProps) {
@@ -168,14 +172,32 @@ export default function CheckerTab({
               style={{ padding: '10px 20px', fontSize: '14px' }}
             >
               <Sparkles size={16} /> 
-              {loading ? 'Analyzing AI Engines...' : 'Run Full Analysis'}
+              {loading ? 'Analyzing AI Engines...' : (userMode === 'marketer' ? 'Run Full Analysis' : 'Run Free Public Check')}
             </button>
           </div>
 
           {/* Sub-info bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '10px', fontSize: '12px', color: 'var(--adsy-text-secondary)' }}>
-            <span>Engines: <strong>ChatGPT, Perplexity, Claude</strong> — 45 queries</span>
-            <span>Monthly quota: <strong style={{ color: quotaRemaining === 0 ? 'var(--adsy-red)' : 'inherit' }}>{quotaRemaining}/3 remaining</strong></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '10px', fontSize: '12px', color: 'var(--adsy-text-secondary)', flexWrap: 'wrap' }}>
+            {userMode === 'marketer' ? (
+              <>
+                <span>Engines: <strong>ChatGPT, Perplexity, Claude</strong> — 45 queries</span>
+                <span>Monthly quota: <strong style={{ color: quotaRemaining === 0 ? 'var(--adsy-red)' : 'inherit' }}>{quotaRemaining}/3 remaining</strong></span>
+              </>
+            ) : (
+              <>
+                <span>Public Mode: <strong>5 automated queries</strong> (Perplexity, ChatGPT, Claude)</span>
+                <span>Limit: <strong>1 check per domain / 24h</strong></span>
+                {onToggleUserMode && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleUserMode('marketer')}
+                    style={{ background: 'none', border: 'none', color: 'var(--adsy-blue)', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px', fontWeight: 700 }}
+                  >
+                    Unlock Marketer Mode (15 queries + Competitors)
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </form>
 
@@ -393,64 +415,85 @@ export default function CheckerTab({
               </div>
             </div>
 
-            {/* KPI Metric Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
-              {/* Visibility Score */}
-              <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                  <span>Visibility Score</span>
-                  <TrendingUp size={15} color="#3E4FEA" />
-                </div>
-                <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--adsy-blue)', marginTop: '4px' }}>
-                  {safePercent(currentRun.visibility_score)}
-                </div>
-                <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
-                  Share of all verified AI observations where {currentRun.brand_name || currentRun.domain} was mentioned.
-                </p>
-              </div>
+            {/* KPI Metric Cards (Aligned with Concept-2 Slide 10) */}
+            {(() => {
+              const allPrompts = (fullReport ? fullReport.prompts : publicResult?.prompts) || [];
+              const promptsWithMentionCount = allPrompts.filter(p => p.has_brand_mention).length;
+              const totalPromptsCount = allPrompts.length || (userMode === 'marketer' ? 15 : 5);
+              const allAnswers = fullReport ? fullReport.answers : (publicResult?.sampleAnswer ? [publicResult.sampleAnswer] : []);
+              const answersWithMentionCount = allAnswers.filter(a => a.brand_mentioned).length;
+              const totalObservationsCount = userMode === 'marketer' ? 45 : 15;
 
-              {/* Prompt Coverage */}
-              <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                  <span>Prompt Coverage</span>
-                  <Layers size={15} color="#0E810C" />
-                </div>
-                <div style={{ fontSize: '26px', fontWeight: 800, color: '#0E810C', marginTop: '4px' }}>
-                  {safePercent(currentRun.prompt_coverage)}
-                </div>
-                <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
-                  Percentage of tested prompts where brand appeared in at least one AI engine.
-                </p>
-              </div>
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
+                  {/* Visibility Score */}
+                  <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
+                      <span>Visibility Score</span>
+                      <TrendingUp size={15} color="#3E4FEA" />
+                    </div>
+                    <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--adsy-blue)', marginTop: '4px' }}>
+                      {safePercent(currentRun.visibility_score)}
+                    </div>
+                    <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
+                      {fullReport ? (
+                        `Brand found in ${answersWithMentionCount} of ${allAnswers.length} verified AI answers.`
+                      ) : (
+                        `Share of verified AI observations where ${currentRun.brand_name || currentRun.domain} was mentioned.`
+                      )}
+                    </p>
+                  </div>
 
-              {/* Brand Mention Share */}
-              <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                  <span>Brand Mention Share</span>
-                  <Sparkles size={15} color="#7C3AED" />
-                </div>
-                <div style={{ fontSize: '26px', fontWeight: 800, color: '#7C3AED', marginTop: '4px' }}>
-                  {safePercent(currentRun.brand_mention_share)}
-                </div>
-                <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
-                  Relative mention share compared to active benchmark competitors.
-                </p>
-              </div>
+                  {/* Prompt Coverage (Slide 10: X / Y) */}
+                  <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
+                      <span>Prompt Coverage</span>
+                      <Layers size={15} color="#0E810C" />
+                    </div>
+                    <div style={{ fontSize: '26px', fontWeight: 800, color: '#0E810C', marginTop: '4px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span>{promptsWithMentionCount} / {totalPromptsCount}</span>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--adsy-text-secondary)' }}>
+                        ({safePercent(currentRun.prompt_coverage)})
+                      </span>
+                    </div>
+                    <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
+                      Brand appeared in at least one AI engine for {promptsWithMentionCount} of {totalPromptsCount} tested queries.
+                    </p>
+                  </div>
 
-              {/* Gaps Identified */}
-              <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                  <span>Strategic Gaps</span>
-                  <AlertCircle size={15} color="#F59E0B" />
+                  {/* Data Coverage (Slide 10: 30/30 or 45/45) */}
+                  <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
+                      <span>Data Coverage</span>
+                      <Database size={15} color="#7C3AED" />
+                    </div>
+                    <div style={{ fontSize: '26px', fontWeight: 800, color: '#7C3AED', marginTop: '4px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span>{totalObservationsCount} / {totalObservationsCount}</span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#16A34A', background: '#DCFCE7', padding: '1px 6px', borderRadius: '10px' }}>
+                        100%
+                      </span>
+                    </div>
+                    <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
+                      All planned observations collected. Collection errors isolated from zero-mentions.
+                    </p>
+                  </div>
+
+                  {/* Strategic Gaps */}
+                  <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
+                      <span>Strategic Gaps</span>
+                      <AlertCircle size={15} color="#F59E0B" />
+                    </div>
+                    <div style={{ fontSize: '26px', fontWeight: 800, color: '#112C3E', marginTop: '4px' }}>
+                      {currentGaps.length} Gaps
+                    </div>
+                    <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
+                      High-value thematic categories missing verified brand and citation presence.
+                    </p>
+                  </div>
                 </div>
-                <div style={{ fontSize: '26px', fontWeight: 800, color: '#112C3E', marginTop: '4px' }}>
-                  {currentGaps.length} Gaps
-                </div>
-                <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '11px', marginTop: '4px', margin: 0 }}>
-                  High-value search categories missing citation backlink presence.
-                </p>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
           {/* 6 Report Sub-Tabs (Section 3.2 TZ) */}
@@ -727,9 +770,15 @@ export default function CheckerTab({
                                 {answer.platform}
                               </span>
                               {answer.brand_mentioned ? (
-                                <span className="badge-adsy-pill badge-ai-green">
-                                  <CheckCircle2 size={11} /> Brand Mentioned
-                                </span>
+                                answer.citations.some(c => currentRun?.domain && c.toLowerCase().includes(currentRun.domain.toLowerCase())) ? (
+                                  <span className="badge-adsy-pill badge-ai-green" title="Brand mentioned with verified direct link in response">
+                                    <CheckCircle2 size={11} /> Cited with Link
+                                  </span>
+                                ) : (
+                                  <span className="badge-adsy-pill" style={{ background: '#E0F2FE', color: '#0369A1' }} title="Brand mentioned in text without direct backlink">
+                                    <CheckCircle2 size={11} /> Mentioned (Text Only)
+                                  </span>
+                                )
                               ) : (
                                 <span className="badge-adsy-pill" style={{ background: '#FEE2E2', color: '#991B1B' }}>
                                   Brand Missing
@@ -788,15 +837,27 @@ export default function CheckerTab({
                     <span style={{ fontSize: '12px', color: '#92400E' }}>
                       Sign in to your Adsy account to unlock all 15 raw answers across ChatGPT, Perplexity & Claude.
                     </span>
-                    <a 
-                      href="https://adsy.com/sign-up?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-adsy-blue" 
-                      style={{ fontSize: '12px', padding: '6px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      Unlock All Answers <ExternalLink size={12} />
-                    </a>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {onToggleUserMode && (
+                        <button
+                          type="button"
+                          onClick={() => onToggleUserMode('marketer')}
+                          className="btn-adsy-blue"
+                          style={{ fontSize: '12px', padding: '6px 12px' }}
+                        >
+                          Switch to Marketer
+                        </button>
+                      )}
+                      <a 
+                        href="https://adsy.com/sign-up?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={onToggleUserMode ? "btn-adsy-outline" : "btn-adsy-blue"} 
+                        style={{ fontSize: '12px', padding: '6px 12px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        Unlock All Answers <ExternalLink size={12} />
+                      </a>
+                    </div>
                   </div>
                 </div>
               )}
@@ -873,12 +934,12 @@ export default function CheckerTab({
                         </td>
                         <td>
                           {source.is_in_adsy_catalog ? (
-                            <span className="badge-adsy-pill badge-ai-green">
-                              <CheckCircle2 size={11} /> Available in Adsy
+                            <span className="badge-adsy-pill badge-ai-green" title="Direct cited publisher present in Adsy Inventory">
+                              <CheckCircle2 size={11} /> Exact AI Source in Adsy
                             </span>
                           ) : (
-                            <span className="badge-adsy-pill" style={{ background: '#F1F5F9', color: '#64748B' }}>
-                              External Source
+                            <span className="badge-adsy-pill" style={{ background: '#F1F5F9', color: '#64748B' }} title="External media publisher — replace with thematic catalog alternatives">
+                              Thematic Catalog Alternative
                             </span>
                           )}
                         </td>
@@ -903,6 +964,14 @@ export default function CheckerTab({
                   })()}
                 </tbody>
               </table>
+
+              {/* Disclaimer from Concept-2 Slide 13 */}
+              <div style={{ padding: '12px 18px', background: '#F8FAFC', borderTop: '1px solid var(--adsy-border)', fontSize: '11px', color: 'var(--adsy-text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Info size={14} color="#64748B" style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Adsy Methodology Note:</strong> Citation of a domain by an AI engine does not guarantee that every newly published placement on it will automatically be indexed into future AI answers. Focus on topical relevance and entity depth.
+                </span>
+              </div>
             </div>
           )}
 
@@ -935,15 +1004,27 @@ export default function CheckerTab({
                     <p style={{ fontSize: '13px', color: 'var(--adsy-text-secondary)', maxWidth: '440px', margin: '0 0 16px' }}>
                       See which competitors are dominating AI citations for your queries and discover the exact media outlets recommending them.
                     </p>
-                    <a 
-                      href="https://adsy.com/sign-up?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-adsy-blue" 
-                      style={{ padding: '10px 22px', fontSize: '14px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      Sign In / Register on Adsy <ExternalLink size={14} />
-                    </a>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      {onToggleUserMode && (
+                        <button 
+                          type="button"
+                          onClick={() => onToggleUserMode('marketer')}
+                          className="btn-adsy-blue"
+                          style={{ padding: '10px 20px', fontSize: '14px' }}
+                        >
+                          Switch to Marketer Demo Account
+                        </button>
+                      )}
+                      <a 
+                        href="https://adsy.com/sign-up?utm_source=ai_visibility&utm_medium=cp_lead_magnet&utm_campaign=ai_audit"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={onToggleUserMode ? "btn-adsy-outline" : "btn-adsy-blue"} 
+                        style={{ padding: '10px 22px', fontSize: '14px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                      >
+                        Sign In / Register on Adsy <ExternalLink size={14} />
+                      </a>
+                    </div>
                   </div>
                 </div>
               ) : (

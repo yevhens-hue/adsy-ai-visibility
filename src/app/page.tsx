@@ -81,7 +81,7 @@ function decrementQuota(): number {
 export default function ControlPanelAIVisibilityPage() {
   // Navigation & User State
   const [activeMainTab, setActiveMainTab] = useState<'checker' | 'inventory' | 'reports'>('checker');
-  const [userMode, setUserMode] = useState<'guest' | 'marketer'>('marketer'); // Toggle for testing both flows
+  const [userMode, setUserMode] = useState<'guest' | 'marketer'>('guest'); // Default: Guest Public Checker (Slides 4, 6 & 20)
 
   // Checker inputs
   const [url, setUrl] = useState('');
@@ -373,7 +373,7 @@ export default function ControlPanelAIVisibilityPage() {
   return (
     <div className="cp-shell">
       {/* Authentic Adsy Header */}
-      <AdsyHeader />
+      <AdsyHeader userMode={userMode} onToggleUserMode={setUserMode} />
 
       <div className="cp-body">
         {/* Authentic Adsy Sidebar */}
@@ -503,6 +503,7 @@ export default function ControlPanelAIVisibilityPage() {
               selectedPromptForAnswer={selectedPromptForAnswer}
               setSelectedPromptForAnswer={setSelectedPromptForAnswer}
               userMode={userMode}
+              onToggleUserMode={setUserMode}
               onRunAnalysis={handleRunAnalysis}
               onSelectGapAndOpenInventory={(topic, dom) => {
                 if (topic) setSelectedGap(topic);

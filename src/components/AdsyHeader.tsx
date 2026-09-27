@@ -16,7 +16,12 @@ export function AdsyLogoSVG() {
   );
 }
 
-export default function AdsyHeader() {
+export interface AdsyHeaderProps {
+  userMode?: 'guest' | 'marketer';
+  onToggleUserMode?: (mode: 'guest' | 'marketer') => void;
+}
+
+export default function AdsyHeader({ userMode = 'guest', onToggleUserMode }: AdsyHeaderProps) {
   return (
     <header className="cp-header">
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -39,8 +44,49 @@ export default function AdsyHeader() {
         </span>
       </div>
 
-      {/* Right Product Status Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      {/* Right Product Status Bar & Mode Switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {onToggleUserMode && (
+          <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #E2E8F0' }}>
+            <button
+              type="button"
+              onClick={() => onToggleUserMode('guest')}
+              style={{
+                padding: '4px 12px',
+                borderRadius: '16px',
+                border: 'none',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: userMode === 'guest' ? '#FFFFFF' : 'transparent',
+                color: userMode === 'guest' ? 'var(--adsy-blue)' : '#64748B',
+                boxShadow: userMode === 'guest' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Guest (Public)
+            </button>
+            <button
+              type="button"
+              onClick={() => onToggleUserMode('marketer')}
+              style={{
+                padding: '4px 12px',
+                borderRadius: '16px',
+                border: 'none',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: userMode === 'marketer' ? 'var(--adsy-blue)' : 'transparent',
+                color: userMode === 'marketer' ? '#FFFFFF' : '#64748B',
+                boxShadow: userMode === 'marketer' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Marketer (Adsy Account)
+            </button>
+          </div>
+        )}
+
         <div 
           style={{ 
             display: 'flex', 
@@ -60,10 +106,10 @@ export default function AdsyHeader() {
               width: '8px', 
               height: '8px', 
               borderRadius: '50%', 
-              background: '#16A34A' 
+              background: userMode === 'marketer' ? '#16A34A' : '#94A3B8' 
             }} 
           />
-          <span>Adsy Account Connected</span>
+          <span>{userMode === 'marketer' ? 'Adsy Account Connected' : 'Guest Session'}</span>
         </div>
       </div>
     </header>
