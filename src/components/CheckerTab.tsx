@@ -112,6 +112,10 @@ export default function CheckerTab({
   onRunAnalysis,
   onSelectGapAndOpenInventory,
 }: CheckerTabProps) {
+  const reportAnswers = fullReport?.answers || (publicResult?.answers?.length ? publicResult.answers : (publicResult?.sampleAnswer ? [publicResult.sampleAnswer] : []));
+  const reportSources = fullReport?.sources || publicResult?.sources || [];
+  const reportCompetitors = fullReport?.competitors || publicResult?.competitors || [];
+
   return (
     <div>
       {/* Search & Config Panel */}
@@ -474,21 +478,21 @@ export default function CheckerTab({
               className={`btn-adsy-outline ${activeReportTab === 'answers' ? 'btn-adsy-blue' : ''}`}
               style={{ fontSize: '13px' }}
             >
-              AI Answers ({fullReport ? fullReport.answers.length : 1})
+              AI Answers ({reportAnswers.length})
             </button>
             <button 
               onClick={() => setActiveReportTab('sources')}
               className={`btn-adsy-outline ${activeReportTab === 'sources' ? 'btn-adsy-blue' : ''}`}
               style={{ fontSize: '13px' }}
             >
-              Sources & Catalog ({fullReport ? fullReport.sources.length : publicResult?.sourcesCount || 0})
+              Sources & Catalog ({reportSources.length || publicResult?.sourcesCount || 0})
             </button>
             <button 
               onClick={() => setActiveReportTab('competitors')}
               className={`btn-adsy-outline ${activeReportTab === 'competitors' ? 'btn-adsy-blue' : ''}`}
               style={{ fontSize: '13px' }}
             >
-              Competitors {userMode === 'guest' ? '(Gated)' : `(${fullReport?.competitors.length || 3})`}
+              Competitors {userMode === 'guest' ? '(Gated)' : `(${reportCompetitors.length || publicResult?.competitorsCount || 3})`}
             </button>
             <button 
               onClick={() => setActiveReportTab('opportunities')}
@@ -623,7 +627,7 @@ export default function CheckerTab({
           {/* SUB-TAB 3: AI Answers */}
           {activeReportTab === 'answers' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {fullReport ? (
+              {reportAnswers.length > 0 ? (
                 <>
                   {/* Engine Filter Bar & Prompt Filter Indicator */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', background: '#FFFFFF', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
@@ -634,28 +638,28 @@ export default function CheckerTab({
                         className={`badge-adsy-pill ${answerPlatformFilter === 'all' ? 'badge-ai-blue' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        All ({fullReport.answers.length})
+                        All ({reportAnswers.length})
                       </button>
                       <button 
                         onClick={() => setAnswerPlatformFilter('ChatGPT')}
                         className={`badge-adsy-pill ${answerPlatformFilter === 'ChatGPT' ? 'badge-ai-green' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        ChatGPT ({fullReport.answers.filter(a => a.platform === 'ChatGPT').length})
+                        ChatGPT ({reportAnswers.filter(a => a.platform === 'ChatGPT').length})
                       </button>
                       <button 
                         onClick={() => setAnswerPlatformFilter('Perplexity')}
                         className={`badge-adsy-pill ${answerPlatformFilter === 'Perplexity' ? 'badge-ai-purple' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        Perplexity ({fullReport.answers.filter(a => a.platform === 'Perplexity').length})
+                        Perplexity ({reportAnswers.filter(a => a.platform === 'Perplexity').length})
                       </button>
                       <button 
                         onClick={() => setAnswerPlatformFilter('Claude')}
                         className={`badge-adsy-pill ${answerPlatformFilter === 'Claude' ? 'badge-ai-blue' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        Claude ({fullReport.answers.filter(a => a.platform === 'Claude').length})
+                        Claude ({reportAnswers.filter(a => a.platform === 'Claude').length})
                       </button>
                     </div>
 
@@ -676,11 +680,12 @@ export default function CheckerTab({
                   </div>
 
                   {/* Answers Cards */}
-                  {fullReport.answers
+                  {reportAnswers
                     .filter(a => answerPlatformFilter === 'all' || a.platform === answerPlatformFilter)
                     .filter(a => !selectedPromptForAnswer || a.prompt_id === selectedPromptForAnswer)
                     .map((answer) => {
-                      const promptForAnswer = fullReport.prompts.find(p => p.id === answer.prompt_id);
+                      const allPrompts = fullReport?.prompts || publicResult?.prompts || [];
+                      const promptForAnswer = allPrompts.find(p => p.id === answer.prompt_id);
                       return (
                         <div key={answer.id} className="cp-panel" style={{ padding: '16px' }}>
                           {promptForAnswer && (
@@ -804,7 +809,7 @@ export default function CheckerTab({
                   </tr>
                 </thead>
                 <tbody>
-                  {(fullReport?.sources || []).filter(s => !sourceFilterInCatalog || s.is_in_adsy_catalog).map((source) => (
+                  {reportSources.filter(s => !sourceFilterInCatalog || s.is_in_adsy_catalog).map((source) => (
                     <tr key={source.id}>
                       <td>
                         <strong style={{ color: 'var(--adsy-text-dark)' }}>{source.domain}</strong>
@@ -922,7 +927,7 @@ export default function CheckerTab({
                         <td>-</td>
                       </tr>
 
-                      {(fullReport?.competitors || []).map((comp) => (
+                      {reportCompetitors.map((comp) => (
                         <tr key={comp.id}>
                           <td>
                             <strong>{comp.name || comp.domain}</strong>

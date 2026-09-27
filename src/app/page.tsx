@@ -289,10 +289,14 @@ export default function ControlPanelAIVisibilityPage() {
   const currentGaps = fullReport?.gaps || publicResult?.gaps || [];
 
   const currentCatalogPublishers = useMemo(() => {
-    if (!fullReport?.sources || fullReport.sources.length === 0) {
+    const activeSources = fullReport?.sources || publicResult?.sources;
+    if (!activeSources || activeSources.length === 0) {
       return undefined;
     }
-    const reportPubs: VerifiedPublisher[] = fullReport.sources.map((s, idx) => {
+    const allPrompts = fullReport?.prompts || publicResult?.prompts || [];
+    const allAnswers = fullReport?.answers || (publicResult?.answers?.length ? publicResult.answers : (publicResult?.sampleAnswer ? [publicResult.sampleAnswer] : []));
+
+    const reportPubs: VerifiedPublisher[] = activeSources.map((s, idx) => {
       const cleanDom = s.domain.toLowerCase().replace(/^www\./, '').trim();
       const known = KNOWN_ADSY_CATALOG[cleanDom];
       const inAdsy = Boolean(known || s.is_in_adsy_catalog);
@@ -309,10 +313,10 @@ export default function ControlPanelAIVisibilityPage() {
       // Match source to the specific gap where its citations were observed, or round-robin across available gaps
       let assignedGap = 'Strategic Market Visibility';
       if (currentGaps && currentGaps.length > 0) {
-        const promptMap = new Map((fullReport.prompts || []).map(p => [p.id, p.text]));
+        const promptMap = new Map(allPrompts.map(p => [p.id, p.text]));
         const gapMatch = currentGaps.find(g => 
           g.prompts_list?.some(pText => {
-            const ans = fullReport.answers?.find(a => {
+            const ans = allAnswers.find(a => {
               const pStr = promptMap.get(a.prompt_id);
               return (pStr === pText || a.prompt_text === pText) && a.citations?.some(c => c.toLowerCase().includes(s.domain.toLowerCase()));
             });
@@ -368,7 +372,7 @@ export default function ControlPanelAIVisibilityPage() {
         };
       });
     return [...reportPubs, ...catalogAlternatives];
-  }, [fullReport, selectedGap, currentGaps, currentRun]);
+  }, [fullReport, publicResult, selectedGap, currentGaps, currentRun]);
 
   return (
     <div className="cp-shell">

@@ -91,6 +91,9 @@ export interface PublicCheckSummary {
   run: CheckRun;
   prompts: CheckPrompt[];
   sampleAnswer?: AIAnswer;
+  answers?: AIAnswer[];
+  sources?: CheckSource[];
+  competitors?: CheckCompetitor[];
   gaps: CheckGap[];
   competitorsCount: number;
   sourcesCount: number;

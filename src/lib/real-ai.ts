@@ -281,26 +281,28 @@ export async function runRealAIAnalysis(
             return fullReport;
           }
         } else {
-          // Public mode summary from persistent run
-          const [promptsRes, gapsRes, competitorsCountRes, sourcesCountRes] = await Promise.all([
+          const [promptsRes, gapsRes, competitorsRes, sourcesRes] = await Promise.all([
             supabase.from('check_prompts').select('*').eq('run_id', recentRun.id).limit(5),
             supabase.from('check_gaps').select('*').eq('run_id', recentRun.id),
-            supabase.from('check_competitors').select('*', { count: 'exact', head: true }).eq('run_id', recentRun.id),
-            supabase.from('check_sources').select('*', { count: 'exact', head: true }).eq('run_id', recentRun.id),
+            supabase.from('check_competitors').select('*').eq('run_id', recentRun.id),
+            supabase.from('check_sources').select('*').eq('run_id', recentRun.id),
           ]);
-          const firstPromptId = promptsRes.data?.[0]?.id;
-          const { data: sampleAns } = firstPromptId
-            ? await supabase.from('ai_answers').select('*').eq('prompt_id', firstPromptId).limit(1).maybeSingle()
-            : { data: null };
+          const promptIds = promptsRes.data?.map(p => p.id) || [];
+          const { data: answersData } = promptIds.length > 0 
+            ? await supabase.from('ai_answers').select('*').in('prompt_id', promptIds)
+            : { data: [] };
 
           if (promptsRes.data && promptsRes.data.length > 0) {
             const publicSummary: PublicCheckSummary = {
               run: recentRun,
               prompts: promptsRes.data,
-              sampleAnswer: sampleAns || undefined,
+              sampleAnswer: answersData?.[0] || undefined,
+              answers: answersData || [],
+              sources: sourcesRes.data || [],
+              competitors: competitorsRes.data || [],
               gaps: gapsRes.data || [],
-              competitorsCount: competitorsCountRes.count ?? 0,
-              sourcesCount: sourcesCountRes.count ?? 0,
+              competitorsCount: competitorsRes.data?.length || 0,
+              sourcesCount: sourcesRes.data?.length || 0,
             };
             DOMAIN_ANALYSIS_CACHE.set(cacheKey, { timestamp: Date.now(), data: publicSummary });
             return publicSummary;
@@ -886,6 +888,20 @@ ${customCStr}`;
         rationale: g.rationale,
         prompts_list: g.prompts_list,
       })));
+
+      // Persist full observation answers across engines
+      if (answers.length > 0) {
+        await supabase.from('ai_answers').insert(answers.map(a => ({
+          id: a.id,
+          prompt_id: a.prompt_id,
+          platform: a.platform,
+          raw_text: a.raw_text,
+          citations: a.citations,
+          brand_mentioned: a.brand_mentioned,
+          mentioned_competitors: a.mentioned_competitors,
+          collected_at: a.collected_at,
+        })));
+      }
     } catch (dbErr) {
       console.warn('Supabase persistence warning:', dbErr);
     }
@@ -896,6 +912,9 @@ ${customCStr}`;
         run,
         prompts,
         sampleAnswer: answers[0],
+        answers,
+        sources,
+        competitors,
         gaps: gaps.slice(0, 2),
         competitorsCount: competitors.length,
         sourcesCount: sources.length,
