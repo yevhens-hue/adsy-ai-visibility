@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRealAIAnalysis } from '@/lib/real-ai';
 import { checkRateLimit, checkMonthlyQuota, getClientIp } from '@/lib/rate-limiter';
+import { PublicCheckSchema } from '@/lib/schemas';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,8 +20,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const isGuest = body.isGuest !== false;
+    const rawBody = await req.json().catch(() => null);
+    if (!rawBody) {
+      return NextResponse.json(
+        { error: 'Invalid JSON request body' },
+        { status: 400 }
+      );
+    }
+
+    if (!rawBody.url && !rawBody.domain) {
+      return NextResponse.json(
+        { error: 'Please provide a valid website URL or domain' },
+        { status: 400 }
+      );
+    }
+
+    const parseResult = PublicCheckSchema.safeParse({
+      url: rawBody.url || rawBody.domain,
+      domain: rawBody.domain,
+      guestSessionId: rawBody.guestSessionId,
+      isGuest: rawBody.isGuest,
+    });
+
+    if (!parseResult.success) {
+      const errorMsg = parseResult.error.issues[0]?.message || 'Please provide a valid website URL or domain';
+      return NextResponse.json(
+        { error: errorMsg },
+        { status: 400 }
+      );
+    }
+
+    const { url } = parseResult.data;
+    const isGuest = parseResult.data.isGuest !== false;
     if (isGuest) {
       const quota = checkMonthlyQuota(`guest-${ip}`, 3);
       if (!quota.allowed) {
@@ -33,14 +64,6 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
-    }
-    const url = body.url || body.domain;
-
-    if (!url || typeof url !== 'string' || url.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Please provide a valid website URL or domain' },
-        { status: 400 }
-      );
     }
 
     const analysis = await runRealAIAnalysis(url, 'public');

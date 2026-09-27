@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { RunIdParamSchema } from '@/lib/schemas';
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,6 +8,14 @@ export async function GET(req: NextRequest) {
     const runId = searchParams.get('id');
 
     if (runId) {
+      const parseResult = RunIdParamSchema.safeParse({ id: runId });
+      if (!parseResult.success) {
+        return NextResponse.json(
+          { error: 'Invalid run ID format. Must be a valid UUID.' },
+          { status: 400 }
+        );
+      }
+
       // Fetch full report data for a specific run
       const { data: run, error: runErr } = await supabase
         .from('check_runs')
@@ -39,12 +48,19 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Otherwise list historical runs
-    const { data: runs, error } = await supabase
+    // Otherwise list historical runs (scoped by session if provided)
+    const guestSessionId = searchParams.get('guestSessionId');
+    let query = supabase
       .from('check_runs')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
+
+    if (guestSessionId) {
+      query = query.eq('guest_session_id', guestSessionId);
+    }
+
+    const { data: runs, error } = await query;
 
     if (error) {
       throw error;

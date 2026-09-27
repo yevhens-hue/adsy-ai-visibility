@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRealAIAnalysis } from '@/lib/real-ai';
 import { checkRateLimit, checkMonthlyQuota, getClientIp } from '@/lib/rate-limiter';
+import { FullCheckSchema } from '@/lib/schemas';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,8 +20,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const isGuest = body.isGuest || body.mode === 'guest';
+    const rawBody = await req.json().catch(() => null);
+    if (!rawBody) {
+      return NextResponse.json(
+        { error: 'Invalid JSON request body' },
+        { status: 400 }
+      );
+    }
+
+    const parseResult = FullCheckSchema.safeParse({
+      url: rawBody.url || rawBody.domain,
+      domain: rawBody.domain,
+      guestSessionId: rawBody.guestSessionId,
+      isGuest: rawBody.isGuest,
+      mode: rawBody.mode,
+      customPrompts: rawBody.customPrompts,
+      customCompetitors: rawBody.customCompetitors,
+    });
+
+    if (!parseResult.success) {
+      const errorMsg = parseResult.error.issues[0]?.message || 'Please provide a valid website URL or domain';
+      return NextResponse.json(
+        { error: errorMsg },
+        { status: 400 }
+      );
+    }
+
+    const { url, customPrompts, customCompetitors } = parseResult.data;
+    const isGuest = Boolean(parseResult.data.isGuest || rawBody.mode === 'guest');
     if (isGuest) {
       const quota = checkMonthlyQuota(`guest-${ip}`, 3);
       if (!quota.allowed) {
@@ -34,20 +61,12 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    const url = body.url || body.domain;
-
-    if (!url || typeof url !== 'string' || url.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Please provide a valid website URL or domain' },
-        { status: 400 }
-      );
-    }
 
     const report = await runRealAIAnalysis(
       url,
       'full',
-      body.customPrompts,
-      body.customCompetitors
+      customPrompts,
+      customCompetitors
     );
 
     return NextResponse.json({

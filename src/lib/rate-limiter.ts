@@ -64,14 +64,20 @@ export function checkMonthlyQuota(identifier: string, maxMonthly = 3): MonthlyQu
 }
 
 export function getClientIp(req: NextRequest): string {
+  // Prioritize trusted edge headers provided by Vercel/Cloudflare infrastructure
+  const vercelIp = req.headers.get('x-vercel-ip');
+  if (vercelIp && vercelIp.trim()) return vercelIp.trim();
+
+  const realIp = req.headers.get('x-real-ip');
+  if (realIp && realIp.trim()) return realIp.trim();
+
+  const cfIp = req.headers.get('cf-connecting-ip');
+  if (cfIp && cfIp.trim()) return cfIp.trim();
+
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) {
     const first = forwarded.split(',')[0].trim();
     if (first) return first;
-  }
-  const realIp = req.headers.get('x-real-ip');
-  if (realIp && realIp.trim()) {
-    return realIp.trim();
   }
   return '127.0.0.1';
 }
