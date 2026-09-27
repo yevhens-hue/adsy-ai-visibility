@@ -161,7 +161,10 @@ export default function CheckerTab({
               className="btn-adsy-outline"
               style={{ padding: '9px 14px', fontSize: '13px' }}
             >
-              <SlidersHorizontal size={14} /> Config ({customPrompts.length + customCompetitors.length} comps)
+              <SlidersHorizontal size={14} /> 
+              {customPrompts.length + customCompetitors.length > 0 
+                ? `Custom Config (${customPrompts.length} queries, ${customCompetitors.length} comps)`
+                : 'Custom Queries & Competitors'}
             </button>
 
             {/* Submit Button */}
@@ -215,6 +218,12 @@ export default function CheckerTab({
                   placeholder="Competitor Name (optional)" 
                   value={newCompetitorName}
                   onChange={e => setNewCompetitorName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCompetitor();
+                    }
+                  }}
                   style={{ flex: 1, padding: '6px 10px', fontSize: '12px', border: '1px solid var(--adsy-border)', borderRadius: '6px' }}
                 />
                 <input 
@@ -222,6 +231,12 @@ export default function CheckerTab({
                   placeholder="domain.com" 
                   value={newCompetitorDomain}
                   onChange={e => setNewCompetitorDomain(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCompetitor();
+                    }
+                  }}
                   style={{ flex: 1, padding: '6px 10px', fontSize: '12px', border: '1px solid var(--adsy-border)', borderRadius: '6px' }}
                 />
                 <button 
@@ -263,6 +278,15 @@ export default function CheckerTab({
                   placeholder="Enter target search query..." 
                   value={newPromptInput}
                   onChange={e => setNewPromptInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newPromptInput.trim()) {
+                        setCustomPrompts(prev => [...prev, newPromptInput.trim()]);
+                        setNewPromptInput('');
+                      }
+                    }
+                  }}
                   style={{ flex: 1, padding: '6px 10px', fontSize: '12px', border: '1px solid var(--adsy-border)', borderRadius: '6px' }}
                 />
                 <button 
