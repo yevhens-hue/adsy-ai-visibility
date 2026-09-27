@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './route';
 import { supabase } from '@/lib/supabase';
+import type { Mock } from 'vitest';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -8,15 +9,20 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-const queryBuilder = (data: any, error: any = null) => ({
+interface QueryResult {
+  data: unknown;
+  error: Error | null;
+}
+interface InvBuilder extends QueryResult {
+  select: Mock;
+  eq: Mock;
+}
+
+const queryBuilder = (data: unknown, error: Error | null = null): InvBuilder => ({
   data,
   error,
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockResolvedValue({ data, error }),
-  in: vi.fn().mockResolvedValue({ data, error }),
-  order: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockResolvedValue({ data, error }),
-  single: vi.fn().mockResolvedValue({ data, error }),
 });
 
 describe('GET /api/inventory', () => {
@@ -30,7 +36,7 @@ describe('GET /api/inventory', () => {
       { domain: 'techbullion.com', adsy_price: 185, adsy_publisher_id: 'PUB-101', frequency: 4 },
       { domain: 'venturebeat.com', adsy_price: 650, adsy_publisher_id: 'PUB-102', frequency: 7 },
     ];
-    (supabase.from as any).mockReturnValue(queryBuilder(sources));
+    (supabase.from as unknown as Mock).mockReturnValue(queryBuilder(sources));
 
     const res = await GET();
     expect(res.status).toBe(200);
@@ -41,7 +47,7 @@ describe('GET /api/inventory', () => {
   });
 
   it('returns 500 when Supabase throws', async () => {
-    (supabase.from as any).mockImplementation(() => {
+    (supabase.from as unknown as Mock).mockImplementation(() => {
       throw new Error('DB down');
     });
 

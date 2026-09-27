@@ -59,7 +59,7 @@ export function getAdsyOrderUrl(
 
   if (domain && domain.trim()) {
     const cleanDomain = domain.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
-    let url = `https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=${encodeURIComponent(cleanDomain)}`;
+    const url = `https://cp.adsy.com/marketer/platform?SiteSearch%5Bsite_url%5D=${encodeURIComponent(cleanDomain)}`;
     const qs = params.toString();
     return qs ? `${url}&${qs}` : url;
   }
@@ -604,6 +604,7 @@ export default function PublisherInventoryTable({
 
   React.useEffect(() => {
     if (publishersList && publishersList.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: sync selected publisher list into local state on prop change
       setPublishers(publishersList);
       return;
     }

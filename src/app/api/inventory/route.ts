@@ -15,7 +15,13 @@ export async function GET() {
     }
 
     // Deduplicate by domain
-    const uniqueMap = new Map<string, any>();
+    interface SourceRow {
+      domain: string;
+      adsy_price: number;
+      adsy_publisher_id?: string;
+      frequency: number;
+    }
+    const uniqueMap = new Map<string, SourceRow>();
     sources?.forEach((s) => {
       if (!uniqueMap.has(s.domain)) {
         uniqueMap.set(s.domain, s);

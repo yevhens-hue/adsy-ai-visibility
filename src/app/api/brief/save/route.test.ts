@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST } from './route';
 import { supabase } from '@/lib/supabase';
@@ -65,7 +65,7 @@ describe('POST /api/brief/save', () => {
   it('persists to Supabase when URL is configured', async () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://real-project.supabase.co');
     const insertMock = vi.fn().mockResolvedValue({ error: null });
-    (supabase.from as any).mockReturnValue({ insert: insertMock });
+    (supabase.from as unknown as Mock).mockReturnValue({ insert: insertMock });
 
     const brief = {
       id: 'brief-2',

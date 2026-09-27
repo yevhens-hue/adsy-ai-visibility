@@ -781,7 +781,7 @@ export default function CheckerTab({
                 <div>
                   <strong style={{ fontSize: '14px', color: 'var(--adsy-text-dark)' }}>Verified AI Sources (Citational Footprint)</strong>
                   <p style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)', margin: '2px 0 0' }}>
-                    Domains repeatedly cited by AI engines for this brand's market space. Cross-referenced with the Adsy publisher catalog.
+                    Domains repeatedly cited by AI engines for this brand&apos;s market space. Cross-referenced with the Adsy publisher catalog.
                   </p>
                 </div>
                 <button 
@@ -982,6 +982,38 @@ export default function CheckerTab({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Empty State when no domain has been analyzed yet */}
+      {!currentRun && !loading && (
+        <div className="cp-panel" style={{ textAlign: 'center', padding: '60px 24px', background: '#FFFFFF' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '14px', background: '#F0FDF4', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Search size={28} />
+          </div>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--adsy-text-dark)', margin: '0 0 8px' }}>
+            Live AI Search & Citations Intelligence
+          </h3>
+          <p style={{ fontSize: '13px', color: 'var(--adsy-text-secondary)', maxWidth: '520px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+            Enter your website domain above to inspect real-time brand citations, visibility score, and ranking gaps across ChatGPT, Perplexity, Claude, and Live Tavily Search.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600 }}>Quick try:</span>
+            {['ahrefs.com', 'monday.com', 'hubspot.com', 'semrush.com'].map((exampleDomain) => (
+              <button
+                key={exampleDomain}
+                type="button"
+                onClick={() => {
+                  setUrl(exampleDomain);
+                  onRunAnalysis(exampleDomain);
+                }}
+                className="btn-adsy-outline"
+                style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', background: '#F8FAFC' }}
+              >
+                {exampleDomain}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

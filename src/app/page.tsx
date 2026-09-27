@@ -84,7 +84,7 @@ export default function ControlPanelAIVisibilityPage() {
   const [userMode, setUserMode] = useState<'guest' | 'marketer'>('marketer'); // Toggle for testing both flows
 
   // Checker inputs
-  const [url, setUrl] = useState('monday.com');
+  const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +154,7 @@ export default function ControlPanelAIVisibilityPage() {
       const searchParams = new URLSearchParams(window.location.search);
       const urlMode = searchParams.get('mode');
       if (urlMode === 'guest') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: derive user mode from URL search param on mount only
         setUserMode('guest');
       }
     }
@@ -168,8 +169,6 @@ export default function ControlPanelAIVisibilityPage() {
           const runs: CheckRun[] = json.data || [];
           if (runs.length > 0) {
             setSavedReports(runs.map(r => ({ run: r, prompts: [] })));
-            // Load the most recent real run
-            await loadSavedRun(runs[0].id);
           }
         }
       } catch (e) {
@@ -315,7 +314,7 @@ export default function ControlPanelAIVisibilityPage() {
           g.prompts_list?.some(pText => {
             const ans = fullReport.answers?.find(a => {
               const pStr = promptMap.get(a.prompt_id);
-              return (pStr === pText || (a as any).prompt_text === pText) && a.citations?.some(c => c.toLowerCase().includes(s.domain.toLowerCase()));
+              return (pStr === pText || a.prompt_text === pText) && a.citations?.some(c => c.toLowerCase().includes(s.domain.toLowerCase()));
             });
             return !!ans;
           })

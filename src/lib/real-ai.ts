@@ -1246,11 +1246,11 @@ function generateFallbackEvalData(
         ]
       : isPersonalOrPortfolio
       ? [
-          { domain: 'towardsdatascience.com', url: 'https://towardsdatascience.com/autonomous-agents', frequency: 22, is_in_adsy_catalog: true, adsy_price: 380 },
-          { domain: 'infoq.com', url: 'https://infoq.com/articles/production-agent-systems', frequency: 18, is_in_adsy_catalog: true, adsy_price: 340 },
-          { domain: 'venturebeat.com', url: 'https://venturebeat.com/ai/enterprise-agent-frameworks', frequency: 15, is_in_adsy_catalog: true, adsy_price: 460 },
+          { domain: 'venturebeat.com', url: 'https://venturebeat.com/ai/enterprise-agent-frameworks', frequency: 15, is_in_adsy_catalog: true, adsy_price: 1529.18 },
+          { domain: 'forbes.com', url: 'https://forbes.com/innovation/enterprise-ai-leaders', frequency: 12, is_in_adsy_catalog: true, adsy_price: 1250.00 },
           { domain: 'techcrunch.com', url: 'https://techcrunch.com/enterprise-ai-engineering', frequency: 19, is_in_adsy_catalog: false, adsy_price: 0 },
-          { domain: 'forbes.com', url: 'https://forbes.com/innovation/enterprise-ai-leaders', frequency: 12, is_in_adsy_catalog: true, adsy_price: 490 },
+          { domain: 'towardsdatascience.com', url: 'https://towardsdatascience.com/autonomous-agents', frequency: 22, is_in_adsy_catalog: false, adsy_price: 0 },
+          { domain: 'infoq.com', url: 'https://infoq.com/articles/production-agent-systems', frequency: 18, is_in_adsy_catalog: false, adsy_price: 0 },
         ]
       : isMediaOrPublisher
       ? [

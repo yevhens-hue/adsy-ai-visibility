@@ -48,6 +48,7 @@ export interface AIAnswer {
   prompt_id: string;
   platform: string;
   raw_text: string;
+  prompt_text?: string;
   citations: string[];
   brand_mentioned: boolean;
   mentioned_competitors: string[];
