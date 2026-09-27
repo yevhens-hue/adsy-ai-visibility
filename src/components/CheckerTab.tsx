@@ -346,16 +346,26 @@ export default function CheckerTab({
                   <span className="badge-adsy-pill badge-ai-green">
                     <CheckCircle2 size={11} /> {userMode === 'marketer' ? '45 Observations Verified' : '15 Observations Verified'}
                   </span>
-                  <span 
-                    className="badge-adsy-pill" 
-                    style={{ background: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                    title="Citational ground-truth modeled via AI simulation and indexed publisher knowledge base"
-                  >
-                    <Sparkles size={11} /> AI Simulation & Knowledge Base Retrieval
-                  </span>
+                  {currentRun.platforms?.some(p => p.toLowerCase().includes('tavily') || p.toLowerCase().includes('live')) ? (
+                    <span 
+                      className="badge-adsy-pill" 
+                      style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      title="Real-time citations and organic brand mentions indexed via Live Tavily Web Search"
+                    >
+                      <Globe size={11} /> Live Web Search & Citations (Tavily AI)
+                    </span>
+                  ) : (
+                    <span 
+                      className="badge-adsy-pill" 
+                      style={{ background: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      title="Citational ground-truth modeled via AI simulation and indexed publisher knowledge base"
+                    >
+                      <Sparkles size={11} /> AI Simulation & Knowledge Base Retrieval
+                    </span>
+                  )}
                 </div>
                 <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '13px', margin: 0 }}>
-                  Evaluated against ChatGPT, Perplexity & Claude (US market, English). Date: {new Date(currentRun.created_at).toLocaleDateString()}
+                  Evaluated against {currentRun.platforms?.join(', ') || 'ChatGPT, Perplexity & Claude'} (US market, English). Date: {new Date(currentRun.created_at).toLocaleDateString()}
                 </p>
                 <div style={{ marginTop: '10px', padding: '8px 12px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <span className="badge-adsy-pill badge-ai-green" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px' }}>CASE PROOF</span>
