@@ -304,3 +304,128 @@ html, body {
   padding: 20px;
   text-align: center;
 }
+
+/* Reusable Tooltip Design System */
+.adsy-tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.adsy-tooltip-inline {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.adsy-tooltip-bubble {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  background-color: #0F172A;
+  color: #F8FAFC;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.35);
+  z-index: 9999;
+  width: max-content;
+  max-width: 280px;
+  word-wrap: break-word;
+  white-space: normal;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.adsy-tooltip-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #0F172A;
+  border: 1px solid #334155;
+  transform: rotate(45deg);
+}
+
+/* Positions */
+.adsy-tooltip-top {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+}
+.adsy-tooltip-top .adsy-tooltip-arrow {
+  bottom: -4px;
+  left: calc(50% - 4px);
+  border-top: none;
+  border-left: none;
+}
+
+.adsy-tooltip-bottom {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+}
+.adsy-tooltip-bottom .adsy-tooltip-arrow {
+  top: -4px;
+  left: calc(50% - 4px);
+  border-bottom: none;
+  border-right: none;
+}
+
+.adsy-tooltip-left {
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+}
+.adsy-tooltip-left .adsy-tooltip-arrow {
+  right: -4px;
+  top: calc(50% - 4px);
+  border-left: none;
+  border-bottom: none;
+}
+
+.adsy-tooltip-right {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+}
+.adsy-tooltip-right .adsy-tooltip-arrow {
+  left: -4px;
+  top: calc(50% - 4px);
+  border-right: none;
+  border-top: none;
+}
+
+/* Trigger Hover & Focus States */
+.adsy-tooltip-wrapper:hover .adsy-tooltip-bubble,
+.adsy-tooltip-wrapper:focus-within .adsy-tooltip-bubble {
+  visibility: visible;
+  opacity: 1;
+}
+
+.adsy-tooltip-wrapper:hover .adsy-tooltip-top,
+.adsy-tooltip-wrapper:focus-within .adsy-tooltip-top {
+  transform: translateX(-50%) translateY(0);
+}
+
+.adsy-tooltip-wrapper:hover .adsy-tooltip-bottom,
+.adsy-tooltip-wrapper:focus-within .adsy-tooltip-bottom {
+  transform: translateX(-50%) translateY(0);
+}
+
+.adsy-tooltip-wrapper:hover .adsy-tooltip-left,
+.adsy-tooltip-wrapper:focus-within .adsy-tooltip-left {
+  transform: translateY(-50%) translateX(0);
+}
+
+.adsy-tooltip-wrapper:hover .adsy-tooltip-right,
+.adsy-tooltip-wrapper:focus-within .adsy-tooltip-right {
+  transform: translateY(-50%) translateX(0);
+}
+
+.adsy-info-icon-trigger:hover {
+  color: var(--adsy-blue) !important;
+}
+

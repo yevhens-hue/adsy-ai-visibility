@@ -21,6 +21,8 @@ export interface AdsyHeaderProps {
   onToggleUserMode?: (mode: 'guest' | 'marketer') => void;
 }
 
+import Tooltip from './Tooltip';
+
 export default function AdsyHeader({ userMode = 'guest', onToggleUserMode }: AdsyHeaderProps) {
   return (
     <header className="cp-header">
@@ -28,89 +30,99 @@ export default function AdsyHeader({ userMode = 'guest', onToggleUserMode }: Ads
         <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
           <AdsyLogoSVG />
         </Link>
-        <span 
-          style={{ 
-            background: '#DCFCE7', 
-            color: '#166534', 
-            fontSize: '11px', 
-            fontWeight: 800, 
-            padding: '4px 10px', 
-            borderRadius: '20px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-          }}
-        >
-          AI Visibility
-        </span>
+        <Tooltip content="Adsy AI Search Visibility Engine — мониторинг цитируемости и рекомендаций бренда в ChatGPT, Perplexity и Claude." position="bottom">
+          <span 
+            style={{ 
+              background: '#DCFCE7', 
+              color: '#166534', 
+              fontSize: '11px', 
+              fontWeight: 800, 
+              padding: '4px 10px', 
+              borderRadius: '20px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              cursor: 'help'
+            }}
+          >
+            AI Visibility
+          </span>
+        </Tooltip>
       </div>
 
       {/* Right Product Status Bar & Mode Switcher */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {onToggleUserMode && (
           <div style={{ display: 'inline-flex', background: '#F1F5F9', padding: '3px', borderRadius: '20px', border: '1px solid #E2E8F0' }}>
-            <button
-              type="button"
-              onClick={() => onToggleUserMode('guest')}
-              style={{
-                padding: '4px 12px',
-                borderRadius: '16px',
-                border: 'none',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                background: userMode === 'guest' ? '#FFFFFF' : 'transparent',
-                color: userMode === 'guest' ? 'var(--adsy-blue)' : '#64748B',
-                boxShadow: userMode === 'guest' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              Guest (Public)
-            </button>
-            <button
-              type="button"
-              onClick={() => onToggleUserMode('marketer')}
-              style={{
-                padding: '4px 12px',
-                borderRadius: '16px',
-                border: 'none',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                background: userMode === 'marketer' ? 'var(--adsy-blue)' : 'transparent',
-                color: userMode === 'marketer' ? '#FFFFFF' : '#64748B',
-                boxShadow: userMode === 'marketer' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              Marketer (Adsy Account)
-            </button>
+            <Tooltip content="Гостевой режим: экспресс-анализ (5 промптов, до 2 стратегических гэпов, бенчмарки конкурентов скрыты, 1 запуск в сутки)." position="bottom">
+              <button
+                type="button"
+                onClick={() => onToggleUserMode('guest')}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: userMode === 'guest' ? '#FFFFFF' : 'transparent',
+                  color: userMode === 'guest' ? 'var(--adsy-blue)' : '#64748B',
+                  boxShadow: userMode === 'guest' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                Guest (Public)
+              </button>
+            </Tooltip>
+            <Tooltip content="Режим клиента Adsy: полный аудит (15 промптов, 45 наблюдений движков, открытые конкуренты, 3 полных отчета в месяц)." position="bottom">
+              <button
+                type="button"
+                onClick={() => onToggleUserMode('marketer')}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: userMode === 'marketer' ? 'var(--adsy-blue)' : 'transparent',
+                  color: userMode === 'marketer' ? '#FFFFFF' : '#64748B',
+                  boxShadow: userMode === 'marketer' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                Marketer (Adsy Account)
+              </button>
+            </Tooltip>
           </div>
         )}
 
-        <div 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px', 
-            padding: '6px 14px', 
-            border: '1px solid #E2E8F0', 
-            borderRadius: '20px', 
-            background: '#F8FAFC', 
-            fontSize: '12px',
-            fontWeight: 600,
-            color: 'var(--adsy-text-dark)'
-          }}
-        >
+        <Tooltip content={userMode === 'marketer' ? 'Авторизованная сессия клиента Adsy. Доступен полный функционал аудита и сквозной переход в корзину CP.' : 'Публичный гостевой сеанс. Доступна базовая экспресс-проверка домена.'} position="bottom">
           <div 
             style={{ 
-              width: '8px', 
-              height: '8px', 
-              borderRadius: '50%', 
-              background: userMode === 'marketer' ? '#16A34A' : '#94A3B8' 
-            }} 
-          />
-          <span>{userMode === 'marketer' ? 'Adsy Account Connected' : 'Guest Session'}</span>
-        </div>
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '6px 14px', 
+              border: '1px solid #E2E8F0', 
+              borderRadius: '20px', 
+              background: '#F8FAFC', 
+              fontSize: '12px',
+              fontWeight: 600,
+              color: 'var(--adsy-text-dark)',
+              cursor: 'help'
+            }}
+          >
+            <div 
+              style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                background: userMode === 'marketer' ? '#16A34A' : '#94A3B8' 
+              }} 
+            />
+            <span>{userMode === 'marketer' ? 'Adsy Account Connected' : 'Guest Session'}</span>
+          </div>
+        </Tooltip>
       </div>
     </header>
   );

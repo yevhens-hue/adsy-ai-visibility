@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, TrendingUp, TrendingDown, ArrowRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import Tooltip, { InfoTooltip } from './Tooltip';
 import { RunComparisonDiff } from '@/types';
 
 interface Props {
@@ -81,7 +82,10 @@ export default function ReportComparisonModal({ diff, onClose }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
             {/* Visibility Score Delta */}
             <div style={{ border: '1px solid var(--adsy-border)', borderRadius: '10px', padding: '16px', background: '#F8FAFC' }}>
-              <div style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600 }}>Visibility Score</div>
+              <div style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Visibility Score
+                <InfoTooltip text="Динамика изменения общей видимости бренда в ответах AI между двумя замерами." />
+              </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
                 <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--adsy-text-dark)' }}>
                   {run1.visibility_score}% <ArrowRight size={14} style={{ display: 'inline', color: '#94A3B8' }} /> {run2.visibility_score}%
@@ -95,7 +99,10 @@ export default function ReportComparisonModal({ diff, onClose }: Props) {
 
             {/* Prompt Coverage Delta */}
             <div style={{ border: '1px solid var(--adsy-border)', borderRadius: '10px', padding: '16px', background: '#F8FAFC' }}>
-              <div style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600 }}>Prompt Coverage</div>
+              <div style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Prompt Coverage
+                <InfoTooltip text="Изменение охвата поисковых запросов: по скольким запросам бренд появился впервые или выпал из ответов." />
+              </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
                 <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--adsy-text-dark)' }}>
                   {run1.prompt_coverage}% <ArrowRight size={14} style={{ display: 'inline', color: '#94A3B8' }} /> {run2.prompt_coverage}%
@@ -109,7 +116,10 @@ export default function ReportComparisonModal({ diff, onClose }: Props) {
 
             {/* Brand Mention Share Delta */}
             <div style={{ border: '1px solid var(--adsy-border)', borderRadius: '10px', padding: '16px', background: '#F8FAFC' }}>
-              <div style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600 }}>Brand Mention Share</div>
+              <div style={{ fontSize: '12px', color: 'var(--adsy-text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Brand Mention Share
+                <InfoTooltip text="Доля прямого упоминания бренда относительно основных конкурентов в исследуемом сегменте." />
+              </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
                 <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--adsy-text-dark)' }}>
                   {run1.brand_mention_share || 0}% <ArrowRight size={14} style={{ display: 'inline', color: '#94A3B8' }} /> {run2.brand_mention_share || 0}%

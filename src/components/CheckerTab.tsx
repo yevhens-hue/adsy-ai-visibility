@@ -24,6 +24,7 @@ import {
   PublicCheckSummary, 
   FullCheckReport 
 } from '@/types';
+import Tooltip, { InfoTooltip } from './Tooltip';
 
 function safePercent(val: number | null | undefined): string {
   if (val === null || val === undefined || isNaN(val)) return '0%';
@@ -144,39 +145,47 @@ export default function CheckerTab({
             </div>
 
             {/* Target Region */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', border: '1px solid var(--adsy-border)', borderRadius: '8px', padding: '9px 12px', fontSize: '13px', color: '#475569' }}>
-              <Globe size={15} color="#64748B" />
-              <strong>United States</strong>
-            </div>
+            <Tooltip content="Регион проведения поисковых проверок (рынок США)." position="bottom">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', border: '1px solid var(--adsy-border)', borderRadius: '8px', padding: '9px 12px', fontSize: '13px', color: '#475569', cursor: 'help' }}>
+                <Globe size={15} color="#64748B" />
+                <strong>United States</strong>
+              </div>
+            </Tooltip>
 
             {/* Language */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', border: '1px solid var(--adsy-border)', borderRadius: '8px', padding: '9px 12px', fontSize: '13px', color: '#475569' }}>
-              <span>English</span>
-            </div>
+            <Tooltip content="Язык поисковых промптов и ответов моделей: English." position="bottom">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#F8FAFC', border: '1px solid var(--adsy-border)', borderRadius: '8px', padding: '9px 12px', fontSize: '13px', color: '#475569', cursor: 'help' }}>
+                <span>English</span>
+              </div>
+            </Tooltip>
 
             {/* Custom Builder Toggle */}
-            <button 
-              type="button"
-              onClick={() => setShowConfigDrawer(!showConfigDrawer)}
-              className="btn-adsy-outline"
-              style={{ padding: '9px 14px', fontSize: '13px' }}
-            >
-              <SlidersHorizontal size={14} /> 
-              {customPrompts.length + customCompetitors.length > 0 
-                ? `Custom Config (${customPrompts.length} queries, ${customCompetitors.length} comps)`
-                : 'Custom Queries & Competitors'}
-            </button>
+            <Tooltip content="Ручная настройка до 5 поисковых промптов и добавление до 5 прямых конкурентов для бенчмаркинга." position="bottom">
+              <button 
+                type="button"
+                onClick={() => setShowConfigDrawer(!showConfigDrawer)}
+                className="btn-adsy-outline"
+                style={{ padding: '9px 14px', fontSize: '13px' }}
+              >
+                <SlidersHorizontal size={14} /> 
+                {customPrompts.length + customCompetitors.length > 0 
+                  ? `Custom Config (${customPrompts.length} queries, ${customCompetitors.length} comps)`
+                  : 'Custom Queries & Competitors'}
+              </button>
+            </Tooltip>
 
             {/* Submit Button */}
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="btn-adsy-green" 
-              style={{ padding: '10px 20px', fontSize: '14px' }}
-            >
-              <Sparkles size={16} /> 
-              {loading ? 'Analyzing AI Engines...' : (userMode === 'marketer' ? 'Run Full Analysis' : 'Run Free Public Check')}
-            </button>
+            <Tooltip content={loading ? 'Идет сбор ответов из ChatGPT, Perplexity и Claude...' : (userMode === 'marketer' ? 'Запустить полный аудит по 15 запросам и 45 ответам движков.' : 'Запустить бесплатную экспресс-проверку по 5 запросам.')} position="bottom">
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="btn-adsy-green" 
+                style={{ padding: '10px 20px', fontSize: '14px' }}
+              >
+                <Sparkles size={16} /> 
+                {loading ? 'Analyzing AI Engines...' : (userMode === 'marketer' ? 'Run Full Analysis' : 'Run Free Public Check')}
+              </button>
+            </Tooltip>
           </div>
 
           {/* Sub-info bar */}
@@ -389,25 +398,29 @@ export default function CheckerTab({
                   <span className="badge-adsy-pill" style={{ background: '#F1F5F9', color: '#334155' }}>
                     {currentRun.domain}
                   </span>
-                  <span className="badge-adsy-pill badge-ai-green">
-                    <CheckCircle2 size={11} /> {userMode === 'marketer' ? '45 Observations Verified' : '15 Observations Verified'}
-                  </span>
+                  <Tooltip content="Число уникальных перекрестных проверок через поисковые движки (15 в гостевом режиме, 45 в режиме Adsy Marketer)." position="top">
+                    <span className="badge-adsy-pill badge-ai-green" style={{ cursor: 'help' }}>
+                      <CheckCircle2 size={11} /> {userMode === 'marketer' ? '45 Observations Verified' : '15 Observations Verified'}
+                    </span>
+                  </Tooltip>
                   {currentRun.platforms?.some(p => p.toLowerCase().includes('tavily') || p.toLowerCase().includes('live')) ? (
-                    <span 
-                      className="badge-adsy-pill" 
-                      style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      title="Real-time citations and organic brand mentions indexed via Live Tavily Web Search"
-                    >
-                      <Globe size={11} /> Live Web Search & Citations (Tavily AI)
-                    </span>
+                    <Tooltip content="Онлайн-сбор данных через Tavily AI с парсингом живых ссылок и цитат в реальном времени." position="top">
+                      <span 
+                        className="badge-adsy-pill" 
+                        style={{ background: '#ECFDF5', color: '#065F46', border: '1px solid #A7F3D0', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}
+                      >
+                        <Globe size={11} /> Live Web Search & Citations (Tavily AI)
+                      </span>
+                    </Tooltip>
                   ) : (
-                    <span 
-                      className="badge-adsy-pill" 
-                      style={{ background: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      title="Citational ground-truth modeled via AI simulation and indexed publisher knowledge base"
-                    >
-                      <Sparkles size={11} /> AI Simulation & Knowledge Base Retrieval
-                    </span>
+                    <Tooltip content="Моделирование цитируемости через поисковые LLM и базу верифицированных источников." position="top">
+                      <span 
+                        className="badge-adsy-pill" 
+                        style={{ background: '#EEF2FF', color: '#3730A3', border: '1px solid #C7D2FE', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'help' }}
+                      >
+                        <Sparkles size={11} /> AI Simulation & Knowledge Base Retrieval
+                      </span>
+                    </Tooltip>
                   )}
                 </div>
                 <p style={{ color: 'var(--adsy-text-secondary)', fontSize: '13px', margin: 0 }}>
@@ -415,9 +428,11 @@ export default function CheckerTab({
                 </p>
                 <div style={{ marginTop: '10px', padding: '8px 12px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   <span className="badge-adsy-pill badge-ai-green" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px' }}>CASE PROOF</span>
-                  <span style={{ fontSize: '12px', color: '#166534', fontWeight: 600 }}>
-                    Verified tier-1 media placements drove +38% AI visibility growth in 30 days.
-                  </span>
+                  <Tooltip content="Эмпирический кейс: публикации в авторитетных СМИ повышают цитируемость и видимость в AI до +38% за 30 дней." position="top">
+                    <span style={{ fontSize: '12px', color: '#166534', fontWeight: 600, cursor: 'help' }}>
+                      Verified tier-1 media placements drove +38% AI visibility growth in 30 days.
+                    </span>
+                  </Tooltip>
                   <a 
                     href="https://adsy.com/blog?s=case+study"
                     target="_blank"
@@ -430,12 +445,14 @@ export default function CheckerTab({
               </div>
 
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button 
-                  onClick={() => onSelectGapAndOpenInventory(currentGaps[0]?.topic, null)}
-                  className="btn-adsy-green"
-                >
-                  <Search size={14} /> Match Publishers in Catalog
-                </button>
+                <Tooltip content="Открыть проверенные медиаплощадки каталога Adsy для закрытия пробелов видимости." position="bottom">
+                  <button 
+                    onClick={() => onSelectGapAndOpenInventory(currentGaps[0]?.topic, null)}
+                    className="btn-adsy-green"
+                  >
+                    <Search size={14} /> Match Publishers in Catalog
+                  </button>
+                </Tooltip>
               </div>
             </div>
 
@@ -453,7 +470,10 @@ export default function CheckerTab({
                   {/* Visibility Score */}
                   <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                      <span>Visibility Score</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Visibility Score
+                        <InfoTooltip text="Доля верифицированных AI-ответов, в которых ваш бренд был напрямую упомянут и процитирован моделями." />
+                      </span>
                       <TrendingUp size={15} color="#3E4FEA" />
                     </div>
                     <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--adsy-blue)', marginTop: '4px' }}>
@@ -471,7 +491,10 @@ export default function CheckerTab({
                   {/* Prompt Coverage (Slide 10: X / Y) */}
                   <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                      <span>Prompt Coverage</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Prompt Coverage
+                        <InfoTooltip text="Количество поисковых запросов из выборки, по которым бренд появился хотя бы в одном AI-движке." />
+                      </span>
                       <Layers size={15} color="#0E810C" />
                     </div>
                     <div style={{ fontSize: '26px', fontWeight: 800, color: '#0E810C', marginTop: '4px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -488,7 +511,10 @@ export default function CheckerTab({
                   {/* Data Coverage (Slide 10: 30/30 or 45/45) */}
                   <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                      <span>Data Coverage</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Data Coverage
+                        <InfoTooltip text="Полнота сбора эмпирических данных: 100% означает, что все запланированные запросы к ChatGPT, Perplexity и Gemini успешно собраны без сетевых таймаутов." />
+                      </span>
                       <Database size={15} color="#7C3AED" />
                     </div>
                     <div style={{ fontSize: '26px', fontWeight: 800, color: '#7C3AED', marginTop: '4px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
@@ -505,7 +531,10 @@ export default function CheckerTab({
                   {/* Strategic Gaps */}
                   <div style={{ padding: '14px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--adsy-text-secondary)', fontSize: '12px' }}>
-                      <span>Strategic Gaps</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Strategic Gaps
+                        <InfoTooltip text="Количество критических поисковых тем и кластеров, где конкуренты присутствуют в ответах AI, а ваш бренд отсутствует." />
+                      </span>
                       <AlertCircle size={15} color="#F59E0B" />
                     </div>
                     <div style={{ fontSize: '26px', fontWeight: 800, color: '#112C3E', marginTop: '4px' }}>
@@ -522,48 +551,60 @@ export default function CheckerTab({
 
           {/* 6 Report Sub-Tabs (Section 3.2 TZ) */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => setActiveReportTab('overview')}
-              className={`btn-adsy-outline ${activeReportTab === 'overview' ? 'btn-adsy-blue' : ''}`}
-              style={{ fontSize: '13px' }}
-            >
-              Overview & Gaps ({currentGaps.length})
-            </button>
-            <button 
-              onClick={() => setActiveReportTab('prompts')}
-              className={`btn-adsy-outline ${activeReportTab === 'prompts' ? 'btn-adsy-blue' : ''}`}
-              style={{ fontSize: '13px' }}
-            >
-              Prompts ({fullReport ? fullReport.prompts.length : publicResult?.prompts.length || 0})
-            </button>
-            <button 
-              onClick={() => setActiveReportTab('answers')}
-              className={`btn-adsy-outline ${activeReportTab === 'answers' ? 'btn-adsy-blue' : ''}`}
-              style={{ fontSize: '13px' }}
-            >
-              AI Answers ({fullReport ? fullReport.answers.length : 0})
-            </button>
-            <button 
-              onClick={() => setActiveReportTab('sources')}
-              className={`btn-adsy-outline ${activeReportTab === 'sources' ? 'btn-adsy-blue' : ''}`}
-              style={{ fontSize: '13px' }}
-            >
-              Sources & Catalog ({fullReport ? fullReport.sources.length : publicResult?.sourcesCount || 0})
-            </button>
-            <button 
-              onClick={() => setActiveReportTab('competitors')}
-              className={`btn-adsy-outline ${activeReportTab === 'competitors' ? 'btn-adsy-blue' : ''}`}
-              style={{ fontSize: '13px' }}
-            >
-              Competitors {userMode === 'guest' ? '(Gated)' : `(${fullReport?.competitors.length ?? 0})`}
-            </button>
-            <button 
-              onClick={() => setActiveReportTab('opportunities')}
-              className={`btn-adsy-outline ${activeReportTab === 'opportunities' ? 'btn-adsy-blue' : ''}`}
-              style={{ fontSize: '13px' }}
-            >
-              Opportunities & Media Match
-            </button>
+            <Tooltip content="Сводка ключевых метрик видимости и выявленных пробелов." position="bottom">
+              <button 
+                onClick={() => setActiveReportTab('overview')}
+                className={`btn-adsy-outline ${activeReportTab === 'overview' ? 'btn-adsy-blue' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                Overview & Gaps ({currentGaps.length})
+              </button>
+            </Tooltip>
+            <Tooltip content="Список всех целевых поисковых запросов и статус присутствия бренда." position="bottom">
+              <button 
+                onClick={() => setActiveReportTab('prompts')}
+                className={`btn-adsy-outline ${activeReportTab === 'prompts' ? 'btn-adsy-blue' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                Prompts ({fullReport ? fullReport.prompts.length : publicResult?.prompts.length || 0})
+              </button>
+            </Tooltip>
+            <Tooltip content="Верифицированные текстовые ответы ChatGPT, Perplexity и Claude с цитатами." position="bottom">
+              <button 
+                onClick={() => setActiveReportTab('answers')}
+                className={`btn-adsy-outline ${activeReportTab === 'answers' ? 'btn-adsy-blue' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                AI Answers ({fullReport ? fullReport.answers.length : 0})
+              </button>
+            </Tooltip>
+            <Tooltip content="СМИ и сайты, цитируемые моделями, и их наличие в каталоге Adsy." position="bottom">
+              <button 
+                onClick={() => setActiveReportTab('sources')}
+                className={`btn-adsy-outline ${activeReportTab === 'sources' ? 'btn-adsy-blue' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                Sources & Catalog ({fullReport ? fullReport.sources.length : publicResult?.sourcesCount || 0})
+              </button>
+            </Tooltip>
+            <Tooltip content="Бенчмарк упоминаемости и доли голоса (Share of Voice) прямых конкурентов." position="bottom">
+              <button 
+                onClick={() => setActiveReportTab('competitors')}
+                className={`btn-adsy-outline ${activeReportTab === 'competitors' ? 'btn-adsy-blue' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                Competitors {userMode === 'guest' ? '(Gated)' : `(${fullReport?.competitors.length ?? 0})`}
+              </button>
+            </Tooltip>
+            <Tooltip content="Приоритетный план публикаций для быстрого закрытия разрывов видимости." position="bottom">
+              <button 
+                onClick={() => setActiveReportTab('opportunities')}
+                className={`btn-adsy-outline ${activeReportTab === 'opportunities' ? 'btn-adsy-blue' : ''}`}
+                style={{ fontSize: '13px' }}
+              >
+                Opportunities & Media Match
+              </button>
+            </Tooltip>
           </div>
 
           {/* SUB-TAB 1: Overview & Gaps */}
@@ -910,11 +951,26 @@ export default function CheckerTab({
               <table className="table-adsy">
                 <thead>
                   <tr>
-                    <th>Cited Domain / URL</th>
-                    <th>AI Citation Frequency</th>
-                    <th>Catalog Status</th>
-                    <th>Adsy Pricing</th>
-                    <th>Action</th>
+                    <th>
+                      Cited Domain / URL 
+                      <InfoTooltip text="Домен издания, на которое ссылается нейросеть при формировании ответа." />
+                    </th>
+                    <th>
+                      AI Citation Frequency 
+                      <InfoTooltip text="Количество цитирований данного домена моделями в исследуемой нише." />
+                    </th>
+                    <th>
+                      Catalog Status 
+                      <InfoTooltip text="Наличие сайта в каталоге Adsy: точное совпадение (Exact Source) или аналог." />
+                    </th>
+                    <th>
+                      Adsy Pricing 
+                      <InfoTooltip text="Стоимость гарантированного размещения статьи (Pay-to-Publish) в Adsy." />
+                    </th>
+                    <th>
+                      Action 
+                      <InfoTooltip text="Переход к карточке площадки в Adsy Control Panel или подбору аналогов." />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1065,11 +1121,26 @@ export default function CheckerTab({
                   <table className="table-adsy">
                     <thead>
                       <tr>
-                        <th>Brand / Competitor</th>
-                        <th>Visibility Score</th>
-                        <th>Prompt Coverage</th>
-                        <th>Total Observed Mentions</th>
-                        <th>Action</th>
+                        <th>
+                          Brand / Competitor 
+                          <InfoTooltip text="Название и домен прямого конкурента в AI-выдаче." />
+                        </th>
+                        <th>
+                          Visibility Score 
+                          <InfoTooltip text="Процент ответов нейросетей с рекомендацией данного конкурента." />
+                        </th>
+                        <th>
+                          Prompt Coverage 
+                          <InfoTooltip text="Доля поисковых запросов, где конкурент вошел в рекомендации." />
+                        </th>
+                        <th>
+                          Total Observed Mentions 
+                          <InfoTooltip text="Суммарное количество упоминаний конкурента во всех проверенных ответах." />
+                        </th>
+                        <th>
+                          Action 
+                          <InfoTooltip text="Подобрать площадки для вытеснения этого конкурента." />
+                        </th>
                       </tr>
                     </thead>
                     <tbody>

@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   ArrowLeft
 } from 'lucide-react';
+import Tooltip, { InfoTooltip } from './Tooltip';
 
 export interface VerifiedPublisher {
   id: string;
@@ -701,90 +702,105 @@ export default function PublisherInventoryTable({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--adsy-text-dark)' }}>
+          <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--adsy-text-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}>
             Filter by AI Signals:
+            <InfoTooltip text="Фильтрация площадок по их роли в ответах AI-моделей (ChatGPT, Perplexity, Claude, Gemini)." />
           </span>
-          <button 
-            type="button"
-            onClick={() => setActiveFilter('all')}
-            className="badge-adsy-pill"
-            style={{ 
-              cursor: 'pointer', 
-              background: activeFilter === 'all' ? '#1E40AF' : '#F8FAFC',
-              color: activeFilter === 'all' ? '#FFFFFF' : '#334155',
-              border: activeFilter === 'all' ? '1px solid #1E40AF' : '1px solid var(--adsy-border)',
-              fontWeight: activeFilter === 'all' ? 700 : 500,
-              padding: '6px 12px',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            All Available ({countAll})
-          </button>
-          <button 
-            type="button"
-            onClick={() => setActiveFilter('seen_in_ai')}
-            className="badge-adsy-pill"
-            style={{ 
-              cursor: 'pointer', 
-              background: activeFilter === 'seen_in_ai' ? '#166534' : '#F8FAFC',
-              color: activeFilter === 'seen_in_ai' ? '#FFFFFF' : '#334155',
-              border: activeFilter === 'seen_in_ai' ? '1px solid #166534' : '1px solid var(--adsy-border)',
-              fontWeight: activeFilter === 'seen_in_ai' ? 700 : 500,
-              padding: '6px 12px',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Seen in AI Sources ({countSeenInAi})
-          </button>
-          <button 
-            type="button"
-            onClick={() => setActiveFilter('high_opportunity')}
-            className="badge-adsy-pill"
-            style={{ 
-              cursor: 'pointer', 
-              background: activeFilter === 'high_opportunity' ? '#6B21A8' : '#F8FAFC',
-              color: activeFilter === 'high_opportunity' ? '#FFFFFF' : '#334155',
-              border: activeFilter === 'high_opportunity' ? '1px solid #6B21A8' : '1px solid var(--adsy-border)',
-              fontWeight: activeFilter === 'high_opportunity' ? 700 : 500,
-              padding: '6px 12px',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            High AI Opportunity ({countHighOpp})
-          </button>
-          <button 
-            type="button"
-            onClick={() => setActiveFilter('medium_opportunity')}
-            className="badge-adsy-pill"
-            style={{ 
-              cursor: 'pointer', 
-              background: activeFilter === 'medium_opportunity' ? '#D97706' : '#F8FAFC',
-              color: activeFilter === 'medium_opportunity' ? '#FFFFFF' : '#334155',
-              border: activeFilter === 'medium_opportunity' ? '1px solid #D97706' : '1px solid var(--adsy-border)',
-              fontWeight: activeFilter === 'medium_opportunity' ? 700 : 500,
-              padding: '6px 12px',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            Catalog Openings ({countMediumOpp})
-          </button>
-          <button 
-            type="button"
-            onClick={() => setActiveFilter('adsy_only')}
-            className="badge-adsy-pill"
-            style={{ 
-              cursor: 'pointer', 
-              background: activeFilter === 'adsy_only' ? '#0E810C' : '#F8FAFC',
-              color: activeFilter === 'adsy_only' ? '#FFFFFF' : '#334155',
-              border: activeFilter === 'adsy_only' ? '1px solid #0E810C' : '1px solid var(--adsy-border)',
-              fontWeight: activeFilter === 'adsy_only' ? 700 : 500,
-              padding: '6px 12px',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <ShieldCheck size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            Adsy In-Stock ({countAdsyOnly})
-          </button>
+          <Tooltip content="Показать все площадки каталога, подходящие под выбранную тему/пробел">
+            <button 
+              type="button"
+              onClick={() => setActiveFilter('all')}
+              className="badge-adsy-pill"
+              style={{ 
+                cursor: 'pointer', 
+                background: activeFilter === 'all' ? '#1E40AF' : '#F8FAFC',
+                color: activeFilter === 'all' ? '#FFFFFF' : '#334155',
+                border: activeFilter === 'all' ? '1px solid #1E40AF' : '1px solid var(--adsy-border)',
+                fontWeight: activeFilter === 'all' ? 700 : 500,
+                padding: '6px 12px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              All Available ({countAll})
+            </button>
+          </Tooltip>
+
+          <Tooltip content="Площадки, которые были напрямую процитированы или упомянуты AI-моделями в текущем исследовании">
+            <button 
+              type="button"
+              onClick={() => setActiveFilter('seen_in_ai')}
+              className="badge-adsy-pill"
+              style={{ 
+                cursor: 'pointer', 
+                background: activeFilter === 'seen_in_ai' ? '#166534' : '#F8FAFC',
+                color: activeFilter === 'seen_in_ai' ? '#FFFFFF' : '#334155',
+                border: activeFilter === 'seen_in_ai' ? '1px solid #166534' : '1px solid var(--adsy-border)',
+                fontWeight: activeFilter === 'seen_in_ai' ? 700 : 500,
+                padding: '6px 12px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Seen in AI Sources ({countSeenInAi})
+            </button>
+          </Tooltip>
+
+          <Tooltip content="Медиа с наивысшим авторитетом (DR>80, высокий органический трафик), цитируемые сразу несколькими AI">
+            <button 
+              type="button"
+              onClick={() => setActiveFilter('high_opportunity')}
+              className="badge-adsy-pill"
+              style={{ 
+                cursor: 'pointer', 
+                background: activeFilter === 'high_opportunity' ? '#6B21A8' : '#F8FAFC',
+                color: activeFilter === 'high_opportunity' ? '#FFFFFF' : '#334155',
+                border: activeFilter === 'high_opportunity' ? '1px solid #6B21A8' : '1px solid var(--adsy-border)',
+                fontWeight: activeFilter === 'high_opportunity' ? 700 : 500,
+                padding: '6px 12px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              High AI Opportunity ({countHighOpp})
+            </button>
+          </Tooltip>
+
+          <Tooltip content="Тематические медиа из каталога Adsy с хорошими показателями для расширения семантического охвата">
+            <button 
+              type="button"
+              onClick={() => setActiveFilter('medium_opportunity')}
+              className="badge-adsy-pill"
+              style={{ 
+                cursor: 'pointer', 
+                background: activeFilter === 'medium_opportunity' ? '#D97706' : '#F8FAFC',
+                color: activeFilter === 'medium_opportunity' ? '#FFFFFF' : '#334155',
+                border: activeFilter === 'medium_opportunity' ? '1px solid #D97706' : '1px solid var(--adsy-border)',
+                fontWeight: activeFilter === 'medium_opportunity' ? 700 : 500,
+                padding: '6px 12px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              Catalog Openings ({countMediumOpp})
+            </button>
+          </Tooltip>
+
+          <Tooltip content="Только площадки, которые доступны для моментального заказа и публикации через маркетплейс Adsy">
+            <button 
+              type="button"
+              onClick={() => setActiveFilter('adsy_only')}
+              className="badge-adsy-pill"
+              style={{ 
+                cursor: 'pointer', 
+                background: activeFilter === 'adsy_only' ? '#0E810C' : '#F8FAFC',
+                color: activeFilter === 'adsy_only' ? '#FFFFFF' : '#334155',
+                border: activeFilter === 'adsy_only' ? '1px solid #0E810C' : '1px solid var(--adsy-border)',
+                fontWeight: activeFilter === 'adsy_only' ? 700 : 500,
+                padding: '6px 12px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <ShieldCheck size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+              Adsy In-Stock ({countAdsyOnly})
+            </button>
+          </Tooltip>
         </div>
 
         {selectedGapTopic && (
@@ -795,14 +811,16 @@ export default function PublisherInventoryTable({
                 {selectedGapTopic} ({filterStrictByGap ? `${filteredPublishers.length} targeted` : `${gapMatchesCount} of ${publishers.length} match`})
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => setFilterStrictByGap(!filterStrictByGap)}
-              className="btn-adsy-outline"
-              style={{ fontSize: '11px', padding: '3px 8px', background: filterStrictByGap ? '#FFFFFF' : '#EFF6FF', fontWeight: 600 }}
-            >
-              {filterStrictByGap ? `Show All Catalog (${publishers.length})` : `Filter by Gap Only (${gapMatchesCount})`}
-            </button>
+            <Tooltip content="Переключить показ: только площадки точно под этот пробел vs весь доступный каталог">
+              <button
+                type="button"
+                onClick={() => setFilterStrictByGap(!filterStrictByGap)}
+                className="btn-adsy-outline"
+                style={{ fontSize: '11px', padding: '3px 8px', background: filterStrictByGap ? '#FFFFFF' : '#EFF6FF', fontWeight: 600 }}
+              >
+                {filterStrictByGap ? `Show All Catalog (${publishers.length})` : `Filter by Gap Only (${gapMatchesCount})`}
+              </button>
+            </Tooltip>
           </div>
         )}
       </div>
@@ -815,12 +833,42 @@ export default function PublisherInventoryTable({
               <th style={{ width: '40px' }}></th>
               <th>Platform / Domain</th>
               <th>Category</th>
-              <th>DR</th>
-              <th>DA</th>
-              <th>Traffic</th>
-              <th>Completion</th>
-              <th>AI Signals & Gaps</th>
-              <th>Price</th>
+              <th>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  DR
+                  <InfoTooltip text="Domain Rating по данным Ahrefs (от 0 до 100). Отражает силу ссылочного профиля домена." />
+                </span>
+              </th>
+              <th>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  DA
+                  <InfoTooltip text="Domain Authority по данным Moz (от 0 до 100). Прогнозирует вероятность ранжирования в поисковых системах." />
+                </span>
+              </th>
+              <th>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  Traffic
+                  <InfoTooltip text="Ежемесячный органический трафик сайта по данным Similarweb / Ahrefs." />
+                </span>
+              </th>
+              <th>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  Completion
+                  <InfoTooltip text="Процент успешно выполненных задач вебмастером в Adsy без отмен и срывов дедлайна." />
+                </span>
+              </th>
+              <th>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  AI Signals & Gaps
+                  <InfoTooltip text="Присутствие домена в источниках AI (ChatGPT, Perplexity и др.) и его релевантность закрываемому пробелу." />
+                </span>
+              </th>
+              <th>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  Price
+                  <InfoTooltip text="Базовая стоимость размещения статьи вебмастером в Adsy CP (или отметка Earned PR для внешних медиа)." />
+                </span>
+              </th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
@@ -974,35 +1022,39 @@ export default function PublisherInventoryTable({
                   </td>
                   <td style={{ textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '6px' }}>
-                      <button 
-                        onClick={() => onOpenBriefModal?.(pub)}
-                        className="btn-adsy-outline" 
-                        style={{ padding: '6px 10px', fontSize: '12px' }}
-                        title="Generate Placement Brief"
-                      >
-                        <FileText size={14} /> Brief
-                      </button>
-                      {isAvailableInAdsy ? (
-                        <a 
-                          href={getAdsyOrderUrl(pub.id, pub.domain)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-adsy-green" 
-                          style={{ padding: '6px 12px', fontSize: '12px' }}
-                        >
-                          <ShoppingCart size={14} /> Buy Post
-                        </a>
-                      ) : (
+                      <Tooltip content="Сформировать готовое ТЗ для копирайтера или вебмастера с учетом пробелов в AI-ответах">
                         <button 
-                          onClick={() => {
-                            setActiveFilter('adsy_only');
-                          }}
+                          onClick={() => onOpenBriefModal?.(pub)}
                           className="btn-adsy-outline" 
-                          style={{ padding: '6px 10px', fontSize: '12px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF', fontWeight: 600 }}
-                          title="View verified Adsy alternatives for this gap"
+                          style={{ padding: '6px 10px', fontSize: '12px' }}
                         >
-                          Match Adsy
+                          <FileText size={14} /> Brief
                         </button>
+                      </Tooltip>
+                      {isAvailableInAdsy ? (
+                        <Tooltip content="Перейти в панель Adsy CP для оформления гарантированного размещения статьи на этой площадке">
+                          <a 
+                            href={getAdsyOrderUrl(pub.id, pub.domain)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-adsy-green" 
+                            style={{ padding: '6px 12px', fontSize: '12px' }}
+                          >
+                            <ShoppingCart size={14} /> Buy Post
+                          </a>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip content="Найти аналогичные подтвержденные медиа-площадки в каталоге Adsy под эту тему">
+                          <button 
+                            onClick={() => {
+                              setActiveFilter('adsy_only');
+                            }}
+                            className="btn-adsy-outline" 
+                            style={{ padding: '6px 10px', fontSize: '12px', color: '#2563EB', borderColor: '#BFDBFE', background: '#EFF6FF', fontWeight: 600 }}
+                          >
+                            Match Adsy
+                          </button>
+                        </Tooltip>
                       )}
                     </div>
                   </td>
