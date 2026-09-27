@@ -50,13 +50,14 @@ adsy-ai-visibility (Next.js 16 App Router / TypeScript)
 
 | Component / Feature | Test Command / Proof | Runtime Status | Verdict |
 |---|---|---|---|
-| **Unit & Integration Suite** | `npm test` (19 test files, 84 tests) | All 84 pass cleanly (26.23s) | ✅ VERIFIED |
+| **Unit & Integration Suite** | `npm test` (19 test files, 84 tests) | All 84 pass cleanly (10.32s) | ✅ VERIFIED |
+| **Live Web Search & Citations (Tavily AI)** | `curl -X POST https://adsy-ai-visibility.vercel.app/api/check/public` | Live Tavily API connected, real citations (`medium.com/@timsoulo`, `storyflow.so`), 27 real sources | ✅ VERIFIED |
 | **SSRF & Private IP Filter** | `curl -d '{"url":"127.0.0.1"}'` / `169.254.169.254` | Blocked live on prod with HTTP 400 "Direct IP addresses are not permitted" | ✅ VERIFIED |
 | **HTTP Security Headers** | `curl -sI https://adsy-ai-visibility.vercel.app/` | CSP, HSTS, X-Frame-Options: DENY, nosniff, strict-origin, Permissions-Policy active | ✅ VERIFIED |
 | **Prompt Injection Defense** | `src/lib/security.test.ts` | Strips jailbreak vectors, bounds external metadata in `<untrusted_site_metadata>` | ✅ VERIFIED |
 | **Zod API Input Validation** | `src/lib/schemas.test.ts` | All API routes (`/check/public`, `/check/full`, `/brief/save`, `/runs`) strictly validated | ✅ VERIFIED |
 | **Production Build** | `npm run build` | Zero TypeScript errors, Turbopack clean compile | ✅ VERIFIED |
-| **Production Deployment** | Git Push + Vercel Deployment | Live on `https://adsy-ai-visibility.vercel.app` (commit `dea48f9`) | ✅ VERIFIED |
+| **Production Deployment** | Git Push + Vercel Deployment | Live on `https://adsy-ai-visibility.vercel.app` (commit `71f90cf`) | ✅ VERIFIED |
 | **Adsy Catalog Alignment** | `src/lib/adsy-catalog.ts` | 20+ verified publishers, real CP IDs (`97966`, `60417`, etc.), live prices ($320, $1250, $1529.18) | ✅ VERIFIED |
 | **Dynamic Niche Gaps** | `curl -X POST .../api/check/public` | `business2community.com` → "Emerging AI Technologies", `zillow.com` → "Real Estate Trends" | ✅ VERIFIED |
 | **Category Overwrite Fix** | Live inspect `/api/inventory` | Real categories displayed (*Technology & Software Systems*, *Enterprise AI*), zero synthetic `[Brand] AI Citations` | ✅ VERIFIED |
