@@ -281,28 +281,26 @@ export async function runRealAIAnalysis(
             return fullReport;
           }
         } else {
-          const [promptsRes, gapsRes, competitorsRes, sourcesRes] = await Promise.all([
+          // Public mode summary from persistent run
+          const [promptsRes, gapsRes, competitorsCountRes, sourcesCountRes] = await Promise.all([
             supabase.from('check_prompts').select('*').eq('run_id', recentRun.id).limit(5),
             supabase.from('check_gaps').select('*').eq('run_id', recentRun.id),
-            supabase.from('check_competitors').select('*').eq('run_id', recentRun.id),
-            supabase.from('check_sources').select('*').eq('run_id', recentRun.id),
+            supabase.from('check_competitors').select('*', { count: 'exact', head: true }).eq('run_id', recentRun.id),
+            supabase.from('check_sources').select('*', { count: 'exact', head: true }).eq('run_id', recentRun.id),
           ]);
-          const promptIds = promptsRes.data?.map(p => p.id) || [];
-          const { data: answersData } = promptIds.length > 0 
-            ? await supabase.from('ai_answers').select('*').in('prompt_id', promptIds)
-            : { data: [] };
+          const firstPromptId = promptsRes.data?.[0]?.id;
+          const { data: sampleAns } = firstPromptId
+            ? await supabase.from('ai_answers').select('*').eq('prompt_id', firstPromptId).limit(1).maybeSingle()
+            : { data: null };
 
           if (promptsRes.data && promptsRes.data.length > 0) {
             const publicSummary: PublicCheckSummary = {
               run: recentRun,
               prompts: promptsRes.data,
-              sampleAnswer: answersData?.[0] || undefined,
-              answers: answersData || [],
-              sources: sourcesRes.data || [],
-              competitors: competitorsRes.data || [],
+              sampleAnswer: sampleAns || undefined,
               gaps: gapsRes.data || [],
-              competitorsCount: competitorsRes.data?.length || 0,
-              sourcesCount: sourcesRes.data?.length || 0,
+              competitorsCount: competitorsCountRes.count ?? 0,
+              sourcesCount: sourcesCountRes.count ?? 0,
             };
             DOMAIN_ANALYSIS_CACHE.set(cacheKey, { timestamp: Date.now(), data: publicSummary });
             return publicSummary;
@@ -387,10 +385,10 @@ Return a strict, valid JSON object matching this schema:
       "relevant_citations": string[] (2-3 realistic authoritative article/portal URLs relevant to this question),
       "key_recommendation_context": string (1-2 sentences on what AI engines actually recommend)
     },
-  "competitors": array of 2 to 4 major actual market competitors or alternative solutions (CRITICAL: MUST use real, genuine recognized companies/platforms matching the vertical e.g. Toptal, 10Clouds, Braintrust, LangChain, Semrush, never generic placeholders like 'Consultant A', 'Company B', etc.), each with:
+  "competitors": array of 2 to 4 major actual market competitors or alternative solutions, each with:
     {
-      "name": string (real known brand/company name),
-      "domain": string (actual valid domain e.g. toptal.com, 10clouds.com),
+      "name": string,
+      "domain": string,
       "visibility_score": number (between 40 and 95),
       "prompt_coverage": number (between 50 and 95),
       "mentions_count": number (between 80 and 300)
@@ -496,41 +494,15 @@ ${customCStr}`;
     competitorList = [...customList, ...competitorList.filter(c => !customCompetitors.some(cc => cc.domain.toLowerCase() === c.domain.toLowerCase() || cc.name.toLowerCase() === c.name.toLowerCase()))];
   }
 
-  const normDom = domain.toLowerCase();
-  const textContext = `${domain} ${metadata.title || ''} ${metadata.description || ''} ${metadata.h1 || ''}`.toLowerCase();
-  const isPersonalOrPortfolio = normDom.includes('pro') || textContext.includes('portfolio') || textContext.includes('architect') || textContext.includes('engineer');
-
-  // Sanitize competitors against generic AI placeholders (e.g. 'Consultant A', 'Company 1')
-  const fallbackNicheCompetitors = isPersonalOrPortfolio
-    ? [
-        { name: 'Toptal AI Consulting', domain: 'toptal.com' },
-        { name: 'LangChain Ecosystem', domain: 'langchain.com' },
-        { name: 'Braintrust Enterprise', domain: 'usebraintrust.com' },
-      ]
-    : [
-        { name: 'Semrush Authority Suite', domain: 'semrush.com' },
-        { name: 'Ahrefs Content Explorer', domain: 'ahrefs.com' },
-        { name: 'HubSpot Marketing Hub', domain: 'hubspot.com' },
-      ];
-
-  const competitors: CheckCompetitor[] = competitorList.map((c, idx) => {
-    let name = c.name;
-    let dom = c.domain;
-    if (!name || /^(consultant|company|agency|solution|vendor|competitor)\s+[a-z0-9]/i.test(name.trim())) {
-      const fb = fallbackNicheCompetitors[idx % fallbackNicheCompetitors.length];
-      name = fb.name;
-      dom = fb.domain;
-    }
-    return {
-      id: getUUID(),
-      run_id: runId,
-      name,
-      domain: dom,
-      visibility_score: Number(c.visibility_score) || (82 - idx * 6),
-      prompt_coverage: Number(c.prompt_coverage) || (78 - idx * 5),
-      mentions_count: Number(c.mentions_count) || (140 - idx * 20),
-    };
-  });
+  const competitors: CheckCompetitor[] = competitorList.map((c) => ({
+    id: getUUID(),
+    run_id: runId,
+    name: c.name,
+    domain: c.domain,
+    visibility_score: Number(c.visibility_score) || 75,
+    prompt_coverage: Number(c.prompt_coverage) || 70,
+    mentions_count: Number(c.mentions_count) || 120,
+  }));
 
   // Build CheckPrompt items with guaranteed injection of custom queries
   let rawPrompts = [...evalData.prompts];
@@ -914,20 +886,6 @@ ${customCStr}`;
         rationale: g.rationale,
         prompts_list: g.prompts_list,
       })));
-
-      // Persist full observation answers across engines
-      if (answers.length > 0) {
-        await supabase.from('ai_answers').insert(answers.map(a => ({
-          id: a.id,
-          prompt_id: a.prompt_id,
-          platform: a.platform,
-          raw_text: a.raw_text,
-          citations: a.citations,
-          brand_mentioned: a.brand_mentioned,
-          mentioned_competitors: a.mentioned_competitors,
-          collected_at: a.collected_at,
-        })));
-      }
     } catch (dbErr) {
       console.warn('Supabase persistence warning:', dbErr);
     }
@@ -938,9 +896,6 @@ ${customCStr}`;
         run,
         prompts,
         sampleAnswer: answers[0],
-        answers,
-        sources,
-        competitors,
         gaps: gaps.slice(0, 2),
         competitorsCount: competitors.length,
         sourcesCount: sources.length,

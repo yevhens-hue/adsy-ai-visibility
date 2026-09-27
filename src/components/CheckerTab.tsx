@@ -112,10 +112,6 @@ export default function CheckerTab({
   onRunAnalysis,
   onSelectGapAndOpenInventory,
 }: CheckerTabProps) {
-  const reportAnswers = fullReport?.answers || (publicResult?.answers?.length ? publicResult.answers : (publicResult?.sampleAnswer ? [publicResult.sampleAnswer] : []));
-  const reportSources = fullReport?.sources || publicResult?.sources || [];
-  const reportCompetitors = fullReport?.competitors || publicResult?.competitors || [];
-
   return (
     <div>
       {/* Search & Config Panel */}
@@ -478,21 +474,21 @@ export default function CheckerTab({
               className={`btn-adsy-outline ${activeReportTab === 'answers' ? 'btn-adsy-blue' : ''}`}
               style={{ fontSize: '13px' }}
             >
-              AI Answers ({reportAnswers.length})
+              AI Answers ({fullReport ? fullReport.answers.length : 0})
             </button>
             <button 
               onClick={() => setActiveReportTab('sources')}
               className={`btn-adsy-outline ${activeReportTab === 'sources' ? 'btn-adsy-blue' : ''}`}
               style={{ fontSize: '13px' }}
             >
-              Sources & Catalog ({reportSources.length || publicResult?.sourcesCount || 0})
+              Sources & Catalog ({fullReport ? fullReport.sources.length : publicResult?.sourcesCount || 0})
             </button>
             <button 
               onClick={() => setActiveReportTab('competitors')}
               className={`btn-adsy-outline ${activeReportTab === 'competitors' ? 'btn-adsy-blue' : ''}`}
               style={{ fontSize: '13px' }}
             >
-              Competitors {userMode === 'guest' ? '(Gated)' : `(${reportCompetitors.length || publicResult?.competitorsCount || 3})`}
+              Competitors {userMode === 'guest' ? '(Gated)' : `(${fullReport?.competitors.length ?? 0})`}
             </button>
             <button 
               onClick={() => setActiveReportTab('opportunities')}
@@ -627,7 +623,7 @@ export default function CheckerTab({
           {/* SUB-TAB 3: AI Answers */}
           {activeReportTab === 'answers' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {reportAnswers.length > 0 ? (
+              {fullReport ? (
                 <>
                   {/* Engine Filter Bar & Prompt Filter Indicator */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', background: '#FFFFFF', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--adsy-border)' }}>
@@ -638,28 +634,28 @@ export default function CheckerTab({
                         className={`badge-adsy-pill ${answerPlatformFilter === 'all' ? 'badge-ai-blue' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        All ({reportAnswers.length})
+                        All ({fullReport.answers.length})
                       </button>
                       <button 
                         onClick={() => setAnswerPlatformFilter('ChatGPT')}
                         className={`badge-adsy-pill ${answerPlatformFilter === 'ChatGPT' ? 'badge-ai-green' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        ChatGPT ({reportAnswers.filter(a => a.platform === 'ChatGPT').length})
+                        ChatGPT ({fullReport.answers.filter(a => a.platform === 'ChatGPT').length})
                       </button>
                       <button 
                         onClick={() => setAnswerPlatformFilter('Perplexity')}
                         className={`badge-adsy-pill ${answerPlatformFilter === 'Perplexity' ? 'badge-ai-purple' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        Perplexity ({reportAnswers.filter(a => a.platform === 'Perplexity').length})
+                        Perplexity ({fullReport.answers.filter(a => a.platform === 'Perplexity').length})
                       </button>
                       <button 
                         onClick={() => setAnswerPlatformFilter('Claude')}
                         className={`badge-adsy-pill ${answerPlatformFilter === 'Claude' ? 'badge-ai-blue' : ''}`}
                         style={{ cursor: 'pointer', border: '1px solid var(--adsy-border)' }}
                       >
-                        Claude ({reportAnswers.filter(a => a.platform === 'Claude').length})
+                        Claude ({fullReport.answers.filter(a => a.platform === 'Claude').length})
                       </button>
                     </div>
 
@@ -680,12 +676,39 @@ export default function CheckerTab({
                   </div>
 
                   {/* Answers Cards */}
-                  {reportAnswers
-                    .filter(a => answerPlatformFilter === 'all' || a.platform === answerPlatformFilter)
-                    .filter(a => !selectedPromptForAnswer || a.prompt_id === selectedPromptForAnswer)
-                    .map((answer) => {
-                      const allPrompts = fullReport?.prompts || publicResult?.prompts || [];
-                      const promptForAnswer = allPrompts.find(p => p.id === answer.prompt_id);
+                  {(() => {
+                    const filteredAnswers = fullReport.answers
+                      .filter(a => answerPlatformFilter === 'all' || a.platform === answerPlatformFilter)
+                      .filter(a => !selectedPromptForAnswer || a.prompt_id === selectedPromptForAnswer);
+
+                    if (filteredAnswers.length === 0) {
+                      return (
+                        <div className="cp-panel" style={{ padding: '40px 24px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '24px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <AlertCircle size={24} color="#D97706" />
+                            </div>
+                            <strong style={{ fontSize: '16px', color: 'var(--adsy-text-dark)' }}>No AI Observations Found</strong>
+                            <p style={{ fontSize: '13px', color: 'var(--adsy-text-secondary)', maxWidth: '500px', margin: 0, lineHeight: 1.6 }}>
+                              {answerPlatformFilter !== 'all'
+                                ? `No ${answerPlatformFilter} responses recorded for this domain. Try switching the engine filter to "All" or re-run the audit.`
+                                : 'This domain was not cited or mentioned in AI engine responses for the tested prompts. This is common for personal portfolios, local businesses, and early-stage brands — it represents a growth opportunity via Adsy media placements.'
+                              }
+                            </p>
+                            <button
+                              onClick={() => onSelectGapAndOpenInventory(currentGaps[0]?.topic, null)}
+                              className="btn-adsy-green"
+                              style={{ marginTop: '4px', fontSize: '13px' }}
+                            >
+                              <Search size={14} /> Match Publishers to Build AI Visibility
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return filteredAnswers.map((answer) => {
+                      const promptForAnswer = fullReport.prompts.find(p => p.id === answer.prompt_id);
                       return (
                         <div key={answer.id} className="cp-panel" style={{ padding: '16px' }}>
                           {promptForAnswer && (
@@ -741,7 +764,8 @@ export default function CheckerTab({
                           </div>
                         </div>
                       );
-                    })}
+                    });
+                  })()}
                 </>
               ) : (
                 <div className="cp-panel" style={{ padding: '16px' }}>
@@ -809,46 +833,74 @@ export default function CheckerTab({
                   </tr>
                 </thead>
                 <tbody>
-                  {reportSources.filter(s => !sourceFilterInCatalog || s.is_in_adsy_catalog).map((source) => (
-                    <tr key={source.id}>
-                      <td>
-                        <strong style={{ color: 'var(--adsy-text-dark)' }}>{source.domain}</strong>
-                        <div style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>{source.url}</div>
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 700, color: 'var(--adsy-blue)' }}>
-                          {source.frequency} citations
-                        </span>
-                      </td>
-                      <td>
-                        {source.is_in_adsy_catalog ? (
-                          <span className="badge-adsy-pill badge-ai-green">
-                            <CheckCircle2 size={11} /> Available in Adsy
+                  {(() => {
+                    const filtered = (fullReport?.sources || []).filter(s => !sourceFilterInCatalog || s.is_in_adsy_catalog);
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={5} style={{ textAlign: 'center', padding: '40px 24px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                              <Globe size={32} color="#CBD5E1" />
+                              <strong style={{ fontSize: '15px', color: 'var(--adsy-text-dark)' }}>No AI Citation Sources Detected</strong>
+                              <p style={{ fontSize: '13px', color: 'var(--adsy-text-secondary)', maxWidth: '480px', margin: 0, lineHeight: 1.5 }}>
+                                {sourceFilterInCatalog
+                                  ? 'No sources from this domain appear in the Adsy publisher catalog. Try showing all sources or build citation presence via Adsy placements.'
+                                  : 'AI engines did not cite any third-party sources in relation to this domain during the audit period. This indicates low AI footprint — an opportunity to build authoritative backlinks via Adsy.'
+                                }
+                              </p>
+                              <button
+                                onClick={() => onSelectGapAndOpenInventory(currentGaps[0]?.topic, null)}
+                                className="btn-adsy-green"
+                                style={{ marginTop: '8px', fontSize: '13px' }}
+                              >
+                                <Search size={14} /> Find Publishers to Build AI Presence
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return filtered.map((source) => (
+                      <tr key={source.id}>
+                        <td>
+                          <strong style={{ color: 'var(--adsy-text-dark)' }}>{source.domain}</strong>
+                          <div style={{ fontSize: '11px', color: 'var(--adsy-text-secondary)' }}>{source.url}</div>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: 700, color: 'var(--adsy-blue)' }}>
+                            {source.frequency} citations
                           </span>
-                        ) : (
-                          <span className="badge-adsy-pill" style={{ background: '#F1F5F9', color: '#64748B' }}>
-                            External Source
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        {source.adsy_price ? (
-                          <strong style={{ color: 'var(--adsy-green)' }}>${source.adsy_price}</strong>
-                        ) : (
-                          <span style={{ color: '#94A3B8', fontSize: '12px' }}>Custom Outreach</span>
-                        )}
-                      </td>
-                      <td>
-                        <button 
-                          onClick={() => onSelectGapAndOpenInventory(currentGaps[0]?.topic, source.domain)}
-                          className={source.is_in_adsy_catalog ? "btn-adsy-green" : "btn-adsy-outline"}
-                          style={{ padding: '6px 12px', fontSize: '11px' }}
-                        >
-                          {source.is_in_adsy_catalog ? "View in Inventory" : "Find Alternatives"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>
+                          {source.is_in_adsy_catalog ? (
+                            <span className="badge-adsy-pill badge-ai-green">
+                              <CheckCircle2 size={11} /> Available in Adsy
+                            </span>
+                          ) : (
+                            <span className="badge-adsy-pill" style={{ background: '#F1F5F9', color: '#64748B' }}>
+                              External Source
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          {source.adsy_price ? (
+                            <strong style={{ color: 'var(--adsy-green)' }}>${source.adsy_price}</strong>
+                          ) : (
+                            <span style={{ color: '#94A3B8', fontSize: '12px' }}>Custom Outreach</span>
+                          )}
+                        </td>
+                        <td>
+                          <button 
+                            onClick={() => onSelectGapAndOpenInventory(currentGaps[0]?.topic, source.domain)}
+                            className={source.is_in_adsy_catalog ? "btn-adsy-green" : "btn-adsy-outline"}
+                            style={{ padding: '6px 12px', fontSize: '11px' }}
+                          >
+                            {source.is_in_adsy_catalog ? "View in Inventory" : "Find Alternatives"}
+                          </button>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -927,7 +979,7 @@ export default function CheckerTab({
                         <td>-</td>
                       </tr>
 
-                      {reportCompetitors.map((comp) => (
+                      {(fullReport?.competitors || []).map((comp) => (
                         <tr key={comp.id}>
                           <td>
                             <strong>{comp.name || comp.domain}</strong>
