@@ -3,8 +3,9 @@
 **Project:** `adsy-ai-visibility`  
 **Production URL:** [https://adsy-ai-visibility.vercel.app](https://adsy-ai-visibility.vercel.app)  
 **Repository:** `/Users/yevhen/ADSY/adsy-ai-visibility` (remote: `https://github.com/yevhens-hue/adsy-ai-visibility.git`)  
-**Commit Baseline:** `e5cb19d` (Branch: `main`, Synced with `origin/main`)  
-**Timestamp:** 2026-09-27 02:30 CEST  
+**Commit Baseline:** `dea48f9` (Branch: `main`, Synced with `origin/main`)  
+**Security Baseline:** Hardened against OWASP Top 10 (SSRF, Prompt Injection, CSP, Clickjacking, MIME sniffing)  
+**Timestamp:** 2026-09-27 12:05 CEST  
 
 ---
 
@@ -18,11 +19,11 @@ adsy-ai-visibility (Next.js 16 App Router / TypeScript)
 │   │   ├── layout.tsx                    # Inter font, metadata, viewport
 │   │   ├── globals.css                   # Adsy enterprise design system tokens
 │   │   └── api/
-│   │       ├── check/public/route.ts     # 5-prompt rapid evaluation (Public/Guest mode)
-│   │       ├── check/full/route.ts       # 45-prompt deep audit (Marketer mode, 3/month quota)
+│   │       ├── check/public/route.ts     # 5-prompt rapid evaluation (Zod-validated, SSRF-guarded)
+│   │       ├── check/full/route.ts       # 45-prompt deep audit (Zod-validated, 3/month quota)
 │   │       ├── inventory/route.ts        # Publisher catalog with AI citation overlay
-│   │       ├── runs/route.ts             # Supabase audit run history & single-run details
-│   │       └── brief/save/route.ts       # Copy brief & save placement intent
+│   │       ├── runs/route.ts             # Supabase audit run history & single-run details (UUID check)
+│   │       └── brief/save/route.ts       # Copy brief & save placement intent (Zod-validated)
 │   ├── components/
 │   │   ├── AdsyHeader.tsx                # Adsy Marketer CP navigation header
 │   │   ├── AdsySidebar.tsx               # Adsy navigation sidebar
@@ -33,6 +34,8 @@ adsy-ai-visibility (Next.js 16 App Router / TypeScript)
 │   │   ├── PlacementBriefModal.tsx       # AI prompt placement brief modal with clipboard copy
 │   │   └── ReportComparisonModal.tsx     # Side-by-side run delta analysis
 │   └── lib/
+│       ├── security.ts                   # SSRF filter, domain validation, prompt injection sanitizer
+│       ├── schemas.ts                    # Zod validation schemas for all incoming API payloads
 │       ├── adsy-catalog.ts               # Canonical Adsy catalog: 20+ verified domains, IDs, live prices
 │       ├── real-ai.ts                    # LLM multi-engine orchestration (GPT-4o-mini, Sonar, Haiku)
 │       ├── checker.ts                    # Observation parsers, brand detection, fallback eval data
@@ -47,9 +50,13 @@ adsy-ai-visibility (Next.js 16 App Router / TypeScript)
 
 | Component / Feature | Test Command / Proof | Runtime Status | Verdict |
 |---|---|---|---|
-| **Unit & Integration Suite** | `npm test` (17 test files, 63 tests) | All 63 pass cleanly (17.90s) | ✅ VERIFIED |
-| **Production Build** | `npm run build` | Zero TypeScript errors, static & dynamic routes compiled | ✅ VERIFIED |
-| **Production Deployment** | `npx vercel --prod --yes` | Aliased to `https://adsy-ai-visibility.vercel.app` | ✅ VERIFIED |
+| **Unit & Integration Suite** | `npm test` (19 test files, 84 tests) | All 84 pass cleanly (26.23s) | ✅ VERIFIED |
+| **SSRF & Private IP Filter** | `curl -d '{"url":"127.0.0.1"}'` / `169.254.169.254` | Blocked live on prod with HTTP 400 "Direct IP addresses are not permitted" | ✅ VERIFIED |
+| **HTTP Security Headers** | `curl -sI https://adsy-ai-visibility.vercel.app/` | CSP, HSTS, X-Frame-Options: DENY, nosniff, strict-origin, Permissions-Policy active | ✅ VERIFIED |
+| **Prompt Injection Defense** | `src/lib/security.test.ts` | Strips jailbreak vectors, bounds external metadata in `<untrusted_site_metadata>` | ✅ VERIFIED |
+| **Zod API Input Validation** | `src/lib/schemas.test.ts` | All API routes (`/check/public`, `/check/full`, `/brief/save`, `/runs`) strictly validated | ✅ VERIFIED |
+| **Production Build** | `npm run build` | Zero TypeScript errors, Turbopack clean compile | ✅ VERIFIED |
+| **Production Deployment** | Git Push + Vercel Deployment | Live on `https://adsy-ai-visibility.vercel.app` (commit `dea48f9`) | ✅ VERIFIED |
 | **Adsy Catalog Alignment** | `src/lib/adsy-catalog.ts` | 20+ verified publishers, real CP IDs (`97966`, `60417`, etc.), live prices ($320, $1250, $1529.18) | ✅ VERIFIED |
 | **Dynamic Niche Gaps** | `curl -X POST .../api/check/public` | `business2community.com` → "Emerging AI Technologies", `zillow.com` → "Real Estate Trends" | ✅ VERIFIED |
 | **Category Overwrite Fix** | Live inspect `/api/inventory` | Real categories displayed (*Technology & Software Systems*, *Enterprise AI*), zero synthetic `[Brand] AI Citations` | ✅ VERIFIED |
