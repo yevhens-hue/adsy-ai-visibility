@@ -387,10 +387,10 @@ Return a strict, valid JSON object matching this schema:
       "relevant_citations": string[] (2-3 realistic authoritative article/portal URLs relevant to this question),
       "key_recommendation_context": string (1-2 sentences on what AI engines actually recommend)
     },
-  "competitors": array of 2 to 4 major actual market competitors or alternative solutions, each with:
+  "competitors": array of 2 to 4 major actual market competitors or alternative solutions (CRITICAL: MUST use real, genuine recognized companies/platforms matching the vertical e.g. Toptal, 10Clouds, Braintrust, LangChain, Semrush, never generic placeholders like 'Consultant A', 'Company B', etc.), each with:
     {
-      "name": string,
-      "domain": string,
+      "name": string (real known brand/company name),
+      "domain": string (actual valid domain e.g. toptal.com, 10clouds.com),
       "visibility_score": number (between 40 and 95),
       "prompt_coverage": number (between 50 and 95),
       "mentions_count": number (between 80 and 300)
@@ -496,15 +496,41 @@ ${customCStr}`;
     competitorList = [...customList, ...competitorList.filter(c => !customCompetitors.some(cc => cc.domain.toLowerCase() === c.domain.toLowerCase() || cc.name.toLowerCase() === c.name.toLowerCase()))];
   }
 
-  const competitors: CheckCompetitor[] = competitorList.map((c) => ({
-    id: getUUID(),
-    run_id: runId,
-    name: c.name,
-    domain: c.domain,
-    visibility_score: Number(c.visibility_score) || 75,
-    prompt_coverage: Number(c.prompt_coverage) || 70,
-    mentions_count: Number(c.mentions_count) || 120,
-  }));
+  const normDom = domain.toLowerCase();
+  const textContext = `${domain} ${metadata.title || ''} ${metadata.description || ''} ${metadata.h1 || ''}`.toLowerCase();
+  const isPersonalOrPortfolio = normDom.includes('pro') || textContext.includes('portfolio') || textContext.includes('architect') || textContext.includes('engineer');
+
+  // Sanitize competitors against generic AI placeholders (e.g. 'Consultant A', 'Company 1')
+  const fallbackNicheCompetitors = isPersonalOrPortfolio
+    ? [
+        { name: 'Toptal AI Consulting', domain: 'toptal.com' },
+        { name: 'LangChain Ecosystem', domain: 'langchain.com' },
+        { name: 'Braintrust Enterprise', domain: 'usebraintrust.com' },
+      ]
+    : [
+        { name: 'Semrush Authority Suite', domain: 'semrush.com' },
+        { name: 'Ahrefs Content Explorer', domain: 'ahrefs.com' },
+        { name: 'HubSpot Marketing Hub', domain: 'hubspot.com' },
+      ];
+
+  const competitors: CheckCompetitor[] = competitorList.map((c, idx) => {
+    let name = c.name;
+    let dom = c.domain;
+    if (!name || /^(consultant|company|agency|solution|vendor|competitor)\s+[a-z0-9]/i.test(name.trim())) {
+      const fb = fallbackNicheCompetitors[idx % fallbackNicheCompetitors.length];
+      name = fb.name;
+      dom = fb.domain;
+    }
+    return {
+      id: getUUID(),
+      run_id: runId,
+      name,
+      domain: dom,
+      visibility_score: Number(c.visibility_score) || (82 - idx * 6),
+      prompt_coverage: Number(c.prompt_coverage) || (78 - idx * 5),
+      mentions_count: Number(c.mentions_count) || (140 - idx * 20),
+    };
+  });
 
   // Build CheckPrompt items with guaranteed injection of custom queries
   let rawPrompts = [...evalData.prompts];
