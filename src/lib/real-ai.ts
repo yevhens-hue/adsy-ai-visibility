@@ -279,7 +279,16 @@ CRITICAL GROUNDING RULES:
 3. Personal Portfolios / Boutique Consultancies:
    - If the domain is an individual specialist portfolio or early startup (not a high-volume media or software suite), AI search engines DO NOT naturally recommend it in broad queries; "has_brand_mention" should be false in general category queries (visibility 5%–15%).
 4. Industry Software Leaders (e.g. monday.com, ahrefs.com): visibility score should reflect 70%–90%.
-5. Output exactly ${targetPromptsCount} prompts covering category, comparison, alternative, problem, and brand types.
+5. Strict Niche Grounding for "sources" (CRITICAL: DO NOT always return forbes.com or techcrunch.com!):
+   Select authoritative third-party media and publications cited by AI engines SPECIFIC TO THIS EXACT NICHE:
+   - Marketing, SEO, Influencer PR & Content: searchenginejournal.com, business2community.com, hubspot.com, contentmarketinginstitute.com, neilpatel.com, backlinko.com, semrush.com
+   - Enterprise AI, Cloud & Software: techbullion.com, venturebeat.com, techtimes.com, metapress.com, programminginsider.com, infoq.com, techcrunch.com
+   - Real Estate & Architecture: urbansplatter.com, zillow.com, inman.com, architecturaldigest.com
+   - Lifestyle, Health & Wellness: livepositively.com, anationofmoms.com, elevatedmagazines.com, 2amagazine.com
+   - Finance, Crypto & Fintech: financebuzz.com, techbullion.com, bignewsnetwork.com, marketwatch.com, forbes.com
+   - General Business & Startups: thestartupmag.com, ipsnews.net, bignewsnetwork.com, forbes.com, msn.com
+   Pick publishers matching the analyzed domain's real vertical.
+6. Output exactly ${targetPromptsCount} prompts covering category, comparison, alternative, problem, and brand types.
 
 Return a strict, valid JSON object matching this schema:
 {
@@ -305,11 +314,11 @@ Return a strict, valid JSON object matching this schema:
     },
   "sources": array of 5 to 8 authoritative third-party publishers/portals frequently cited for this niche:
     {
-      "domain": string (e.g. towardsdatascience.com, techcrunch.com, infoq.com, github.com, forbes.com),
+      "domain": string (authoritative publisher domain matching this niche),
       "url": string (full publication URL),
       "frequency": number (times cited, between 4 and 28),
       "is_in_adsy_catalog": boolean,
-      "adsy_price": number (between 120 and 520)
+      "adsy_price": number (between 37 and 1250)
     },
   "gaps": array of 2 to 4 specific strategic gaps where competitors dominate citations:
     {
@@ -428,12 +437,10 @@ ${customCStr}`;
         prompt_type: 'category' as const,
         has_brand_mention: false,
         is_custom: true,
-        leading_market_solutions: compNames.length > 0 ? compNames : ['WhitePress', 'Adsy'],
-        relevant_citations: [
-          'https://searchengineland.com/guest-posting-standards-2026',
-          'https://ahrefs.com/blog/link-building-guide',
-          'https://forbes.com/business/content-syndication'
-        ],
+        leading_market_solutions: compNames.length > 0 ? compNames : [brandName, 'Industry Standard A', 'Industry Standard B'],
+        relevant_citations: (evalData.sources && evalData.sources.length > 0) 
+          ? evalData.sources.slice(0, 3).map(s => s.url) 
+          : [`https://${domain}`],
         key_recommendation_context: `Evaluations prioritize publisher vetting transparency, domain authority stability, and guaranteed indexation compliance.`
       };
     });
@@ -463,9 +470,9 @@ ${customCStr}`;
   const sources: CheckSource[] = evalData.sources.map((s) => {
     const cleanDomain = s.domain.toLowerCase().replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*$/, '').trim();
     const knownEntry = KNOWN_ADSY_CATALOG[cleanDomain];
-    const isInAdsy = Boolean(knownEntry);
+    const isInAdsy = Boolean(knownEntry && knownEntry.basePrice !== null);
     const adsyPublisherId = knownEntry?.id;
-    const adsyPrice = knownEntry?.basePrice;
+    const adsyPrice = (typeof knownEntry?.basePrice === 'number') ? knownEntry.basePrice : undefined;
 
     return {
       id: getUUID(),
@@ -687,21 +694,44 @@ function generateFallbackEvalData(
   customPrompts?: string[],
   customCompetitors?: { name: string; domain: string }[]
 ): OpenAIEvalResponse {
-  const isPersonalOrPortfolio = domain.includes('pro') || (metadata.title && (metadata.title.includes('Portfolio') || metadata.title.includes('Architect') || metadata.title.includes('Engineer')));
-  const isMediaOrPublisher = domain.includes('community') || domain.includes('news') || domain.includes('times') || domain.includes('journal') || domain.includes('mag') || (metadata.title && (metadata.title.includes('News') || metadata.title.includes('Media') || metadata.title.includes('Marketing News') || metadata.title.includes('Business')));
+  const normDom = domain.toLowerCase();
+  const textContext = `${domain} ${metadata.title || ''} ${metadata.description || ''} ${metadata.h1 || ''}`.toLowerCase();
+
+  const isPersonalOrPortfolio = normDom.includes('pro') || textContext.includes('portfolio') || textContext.includes('architect') || textContext.includes('engineer');
+  const isMarketingOrSeo = textContext.includes('marketing') || textContext.includes('seo') || textContext.includes('digital pr') || textContext.includes('guest post') || textContext.includes('outreach') || textContext.includes('influencer') || normDom.includes('whitepress') || normDom.includes('neilpatel') || normDom.includes('backlink') || normDom.includes('searchengine');
+  const isRealEstate = textContext.includes('real estate') || textContext.includes('property') || textContext.includes('housing') || textContext.includes('architecture') || normDom.includes('estate') || normDom.includes('zillow') || normDom.includes('realt') || normDom.includes('urban');
+  const isLifestyleOrHealth = textContext.includes('health') || textContext.includes('wellness') || textContext.includes('fitness') || textContext.includes('parenting') || textContext.includes('lifestyle') || textContext.includes('family') || normDom.includes('mom') || normDom.includes('life');
+  const isFinanceOrCrypto = textContext.includes('finance') || textContext.includes('banking') || textContext.includes('crypto') || textContext.includes('fintech') || textContext.includes('investing') || textContext.includes('credit');
+  const isMediaOrPublisher = normDom.includes('community') || normDom.includes('news') || normDom.includes('times') || normDom.includes('journal') || normDom.includes('mag') || textContext.includes('news') || textContext.includes('media') || textContext.includes('editorial');
   
   const niche = isPersonalOrPortfolio
     ? 'AI Systems & Autonomous Agents Engineering'
-    : isMediaOrPublisher
-      ? 'Business, AI & Marketing Media'
-      : `${brandGuess} Industry Solutions`;
+    : isMarketingOrSeo
+      ? 'Digital PR, SEO & Inbound Marketing Media'
+      : isRealEstate
+        ? 'Real Estate & Architectural Design Media'
+        : isLifestyleOrHealth
+          ? 'Lifestyle, Health & Family Wellness Media'
+          : isFinanceOrCrypto
+            ? 'Fintech, Capital Markets & Financial Planning'
+            : isMediaOrPublisher
+              ? 'Business, AI & Marketing Media'
+              : `${brandGuess} Industry Solutions`;
   const brandName = metadata.title?.split('—')[0]?.split(':')[0]?.trim() || brandGuess;
 
   const defaultSolutions = isPersonalOrPortfolio
     ? ['LangChain', 'OpenAI Enterprise', 'Toptal AI']
-    : isMediaOrPublisher
-      ? ['Entrepreneur', 'Search Engine Journal', 'Inc. Magazine', 'Fast Company']
-      : ['Industry Leader Alpha', 'Platform Beta', 'Service Gamma'];
+    : isMarketingOrSeo
+      ? ['Semrush', 'Ahrefs', 'HubSpot Marketing', 'Search Engine Journal']
+      : isRealEstate
+        ? ['Zillow', 'Redfin', 'Realtor.com']
+        : isLifestyleOrHealth
+          ? ['Healthline', 'MindBodyGreen', 'Verywell']
+          : isFinanceOrCrypto
+            ? ['Investopedia', 'NerdWallet', 'Bankrate']
+            : isMediaOrPublisher
+              ? ['Entrepreneur', 'Search Engine Journal', 'Inc. Magazine', 'Fast Company']
+              : ['Industry Leader Alpha', 'Platform Beta', 'Service Gamma'];
 
   const mediaPrompts = [
     { text: `What are the latest developments and trends in AI marketing for 2026?`, topic: 'AI Marketing Trends', prompt_type: 'category' as const, has_brand_mention: true, leading_market_solutions: defaultSolutions, relevant_citations: [`https://${domain}`, 'https://searchenginejournal.com'], key_recommendation_context: 'Leading business and marketing media analyze practical generative AI applications.' },
@@ -914,7 +944,32 @@ function generateFallbackEvalData(
             { name: 'LangChain Ecosystem', domain: 'langchain.com', visibility_score: 94, prompt_coverage: 90, mentions_count: 310 },
             { name: 'Braintrust Enterprise', domain: 'usebraintrust.com', visibility_score: 72, prompt_coverage: 68, mentions_count: 140 },
           ]
-        : isMediaOrPublisher
+      : isMarketingOrSeo
+        ? [
+            { name: 'Semrush Authority Suite', domain: 'semrush.com', visibility_score: 91, prompt_coverage: 88, mentions_count: 260 },
+            { name: 'Ahrefs Content Explorer', domain: 'ahrefs.com', visibility_score: 89, prompt_coverage: 85, mentions_count: 245 },
+            { name: 'HubSpot Marketing Hub', domain: 'hubspot.com', visibility_score: 86, prompt_coverage: 82, mentions_count: 215 },
+            { name: 'Neil Patel Digital', domain: 'neilpatel.com', visibility_score: 79, prompt_coverage: 75, mentions_count: 170 },
+          ]
+      : isRealEstate
+        ? [
+            { name: 'Zillow Housing Insights', domain: 'zillow.com', visibility_score: 92, prompt_coverage: 89, mentions_count: 280 },
+            { name: 'Redfin Real Estate', domain: 'redfin.com', visibility_score: 85, prompt_coverage: 82, mentions_count: 220 },
+            { name: 'Realtor.com Economics', domain: 'realtor.com', visibility_score: 82, prompt_coverage: 79, mentions_count: 190 },
+          ]
+      : isLifestyleOrHealth
+        ? [
+            { name: 'Healthline Media', domain: 'healthline.com', visibility_score: 93, prompt_coverage: 90, mentions_count: 290 },
+            { name: 'MindBodyGreen Wellness', domain: 'mindbodygreen.com', visibility_score: 84, prompt_coverage: 80, mentions_count: 210 },
+            { name: 'Verywell Family', domain: 'verywellfamily.com', visibility_score: 81, prompt_coverage: 77, mentions_count: 180 },
+          ]
+      : isFinanceOrCrypto
+        ? [
+            { name: 'Investopedia Financial Hub', domain: 'investopedia.com', visibility_score: 92, prompt_coverage: 88, mentions_count: 270 },
+            { name: 'NerdWallet Ratings', domain: 'nerdwallet.com', visibility_score: 87, prompt_coverage: 84, mentions_count: 230 },
+            { name: 'Bankrate Comparison', domain: 'bankrate.com', visibility_score: 83, prompt_coverage: 80, mentions_count: 195 },
+          ]
+      : isMediaOrPublisher
         ? [
             { name: 'Entrepreneur', domain: 'entrepreneur.com', visibility_score: 88, prompt_coverage: 85, mentions_count: 240 },
             { name: 'Search Engine Journal', domain: 'searchenginejournal.com', visibility_score: 84, prompt_coverage: 80, mentions_count: 210 },
@@ -926,7 +981,39 @@ function generateFallbackEvalData(
             { name: 'Market Competitor B', domain: 'competitor-b.com', visibility_score: 68, prompt_coverage: 64, mentions_count: 110 },
             { name: 'Market Competitor C', domain: 'competitor-c.com', visibility_score: 55, prompt_coverage: 48, mentions_count: 85 }
           ],
-    sources: isPersonalOrPortfolio
+    sources: isMarketingOrSeo
+      ? [
+          { domain: 'searchenginejournal.com', url: 'https://searchenginejournal.com', frequency: 24, is_in_adsy_catalog: true, adsy_price: 689.97 },
+          { domain: 'business2community.com', url: 'https://business2community.com', frequency: 21, is_in_adsy_catalog: true, adsy_price: 2386.33 },
+          { domain: 'hubspot.com', url: 'https://hubspot.com', frequency: 18, is_in_adsy_catalog: true, adsy_price: 1450.00 },
+          { domain: 'thestartupmag.com', url: 'https://thestartupmag.com', frequency: 15, is_in_adsy_catalog: true, adsy_price: 79.50 },
+          { domain: 'techbullion.com', url: 'https://techbullion.com', frequency: 13, is_in_adsy_catalog: true, adsy_price: 73.80 },
+          { domain: 'contentmarketinginstitute.com', url: 'https://contentmarketinginstitute.com', frequency: 16, is_in_adsy_catalog: false, adsy_price: 0 },
+          { domain: 'neilpatel.com', url: 'https://neilpatel.com', frequency: 14, is_in_adsy_catalog: false, adsy_price: 0 },
+        ]
+      : isRealEstate
+      ? [
+          { domain: 'urbansplatter.com', url: 'https://urbansplatter.com', frequency: 22, is_in_adsy_catalog: true, adsy_price: 68.00 },
+          { domain: 'zillow.com', url: 'https://zillow.com', frequency: 20, is_in_adsy_catalog: true, adsy_price: 93.00 },
+          { domain: 'bignewsnetwork.com', url: 'https://bignewsnetwork.com', frequency: 15, is_in_adsy_catalog: true, adsy_price: 37.58 },
+          { domain: 'msn.com', url: 'https://msn.com', frequency: 17, is_in_adsy_catalog: true, adsy_price: 239.99 },
+          { domain: 'thestartupmag.com', url: 'https://thestartupmag.com', frequency: 11, is_in_adsy_catalog: true, adsy_price: 79.50 },
+        ]
+      : isLifestyleOrHealth
+      ? [
+          { domain: 'livepositively.com', url: 'https://livepositively.com', frequency: 22, is_in_adsy_catalog: true, adsy_price: 51.00 },
+          { domain: 'anationofmoms.com', url: 'https://anationofmoms.com', frequency: 19, is_in_adsy_catalog: true, adsy_price: 37.50 },
+          { domain: 'elevatedmagazines.com', url: 'https://elevatedmagazines.com', frequency: 16, is_in_adsy_catalog: true, adsy_price: 37.50 },
+          { domain: '2amagazine.com', url: 'https://2amagazine.com', frequency: 13, is_in_adsy_catalog: true, adsy_price: 40.00 },
+        ]
+      : isFinanceOrCrypto
+      ? [
+          { domain: 'techbullion.com', url: 'https://techbullion.com', frequency: 20, is_in_adsy_catalog: true, adsy_price: 73.80 },
+          { domain: 'bignewsnetwork.com', url: 'https://bignewsnetwork.com', frequency: 17, is_in_adsy_catalog: true, adsy_price: 37.58 },
+          { domain: 'financebuzz.com', url: 'https://financebuzz.com', frequency: 19, is_in_adsy_catalog: false, adsy_price: 0 },
+          { domain: 'forbes.com', url: 'https://forbes.com', frequency: 12, is_in_adsy_catalog: true, adsy_price: 1250.00 },
+        ]
+      : isPersonalOrPortfolio
       ? [
           { domain: 'towardsdatascience.com', url: 'https://towardsdatascience.com/autonomous-agents', frequency: 22, is_in_adsy_catalog: true, adsy_price: 380 },
           { domain: 'infoq.com', url: 'https://infoq.com/articles/production-agent-systems', frequency: 18, is_in_adsy_catalog: true, adsy_price: 340 },
@@ -944,38 +1031,90 @@ function generateFallbackEvalData(
           { domain: 'forbes.com', url: 'https://forbes.com', frequency: 11, is_in_adsy_catalog: true, adsy_price: 1250.00 },
         ]
       : [
-          { domain: 'techradar.com', url: 'https://techradar.com/reviews/best-software', frequency: 16, is_in_adsy_catalog: true, adsy_price: 320 },
-          { domain: 'venturebeat.com', url: 'https://venturebeat.com/enterprise-tech-trends', frequency: 12, is_in_adsy_catalog: true, adsy_price: 450 },
-          { domain: 'g2.com', url: 'https://g2.com/categories/software', frequency: 22, is_in_adsy_catalog: false, adsy_price: 0 },
-          { domain: 'forbes.com', url: 'https://forbes.com/business-software-reviews', frequency: 9, is_in_adsy_catalog: true, adsy_price: 480 },
+          { domain: 'techbullion.com', url: 'https://techbullion.com', frequency: 18, is_in_adsy_catalog: true, adsy_price: 73.80 },
+          { domain: 'venturebeat.com', url: 'https://venturebeat.com', frequency: 15, is_in_adsy_catalog: true, adsy_price: 1529.18 },
+          { domain: 'thestartupmag.com', url: 'https://thestartupmag.com', frequency: 14, is_in_adsy_catalog: true, adsy_price: 79.50 },
+          { domain: 'msn.com', url: 'https://msn.com', frequency: 12, is_in_adsy_catalog: true, adsy_price: 239.99 },
+          { domain: 'forbes.com', url: 'https://forbes.com', frequency: 9, is_in_adsy_catalog: true, adsy_price: 1250.00 },
         ],
-    gaps: [
-      {
-        topic: isPersonalOrPortfolio 
-          ? 'Autonomous Agents & Enterprise RAG Citations' 
-          : isMediaOrPublisher
-            ? 'AI Marketing & Automation Editorial Citations'
-            : 'Enterprise Solutions Comparison',
-        gap_type: 'missing_with_competitors',
-        priority: 'high',
-        rationale: isMediaOrPublisher
-          ? `Peer media outlets (Entrepreneur, Search Engine Journal) capture 78% of citations in AI marketing and automated SEO queries.`
-          : `Market leaders dominate 86% of citations in technical architecture queries while ${brandName} is absent from general category recommendations.`,
-        prompts_list: selectedPrompts.slice(0, 3).map(p => p.text)
-      },
-      {
-        topic: isPersonalOrPortfolio 
-          ? 'Authoritative Thought Leadership in AI Publications' 
-          : isMediaOrPublisher
-            ? 'Executive B2B Growth & Fintech Forecasts Visibility'
-            : 'Cost Efficiency & ROI Benchmarks',
-        gap_type: 'external_sources_opportunity',
-        priority: 'medium',
-        rationale: isMediaOrPublisher
-          ? `Key digital PR sources (TechBullion, IPS News, MetaPress) present major opportunities to amplify ${brandName} reporting and citation backlinks.`
-          : `Key AI publications (Towards Data Science, InfoQ, VentureBeat) lack verified case study citations mentioning ${brandName}.`,
-        prompts_list: selectedPrompts.slice(3, 5).map(p => p.text)
-      }
-    ]
+    gaps: isMarketingOrSeo
+      ? [
+          {
+            topic: 'Influencer Marketing & Digital PR Authority',
+            gap_type: 'missing_with_competitors',
+            priority: 'high',
+            rationale: `Market leaders (Semrush, HubSpot) capture 82% of citations in influencer marketing and outreach queries.`,
+            prompts_list: selectedPrompts.slice(0, 3).map(p => p.text)
+          },
+          {
+            topic: 'SEO Performance & Search Authority',
+            gap_type: 'weak_presence',
+            priority: 'medium',
+            rationale: `Citations in Search Engine Journal and Business2Community represent high-impact opportunities to reinforce authority backlinks.`,
+            prompts_list: selectedPrompts.slice(3, 5).map(p => p.text)
+          }
+        ]
+      : isRealEstate
+      ? [
+          {
+            topic: 'Real Estate & Architectural Design Authority',
+            gap_type: 'missing_with_competitors',
+            priority: 'high',
+            rationale: `Real estate leaders dominate 85% of citations in property and architectural analysis.`,
+            prompts_list: selectedPrompts.slice(0, 3).map(p => p.text)
+          },
+          {
+            topic: 'Housing Market Intelligence Citations',
+            gap_type: 'external_sources_opportunity',
+            priority: 'medium',
+            rationale: `Targeted placements in Urban Splatter and Zillow enhance citation density in AI real estate queries.`,
+            prompts_list: selectedPrompts.slice(3, 5).map(p => p.text)
+          }
+        ]
+      : isLifestyleOrHealth
+      ? [
+          {
+            topic: 'Lifestyle, Health & Wellness Media',
+            gap_type: 'missing_with_competitors',
+            priority: 'high',
+            rationale: `Healthline and top lifestyle portals capture 78% of citations in wellness recommendations.`,
+            prompts_list: selectedPrompts.slice(0, 3).map(p => p.text)
+          },
+          {
+            topic: 'Parenting & Family Wellness Editorial Reach',
+            gap_type: 'external_sources_opportunity',
+            priority: 'medium',
+            rationale: `Placements on Live Positively and A Nation of Moms provide organic lifestyle authority citations.`,
+            prompts_list: selectedPrompts.slice(3, 5).map(p => p.text)
+          }
+        ]
+      : [
+          {
+            topic: isPersonalOrPortfolio 
+              ? 'Autonomous Agents & Enterprise RAG Citations' 
+              : isMediaOrPublisher
+                ? 'AI Marketing & Automation Editorial Citations'
+                : 'Enterprise Solutions Comparison',
+            gap_type: 'missing_with_competitors',
+            priority: 'high',
+            rationale: isMediaOrPublisher
+              ? `Peer media outlets (Entrepreneur, Search Engine Journal) capture 78% of citations in AI marketing and automated SEO queries.`
+              : `Market leaders dominate 86% of citations in technical architecture queries while ${brandName} is absent from general category recommendations.`,
+            prompts_list: selectedPrompts.slice(0, 3).map(p => p.text)
+          },
+          {
+            topic: isPersonalOrPortfolio 
+              ? 'Authoritative Thought Leadership in AI Publications' 
+              : isMediaOrPublisher
+                ? 'Executive B2B Growth & Fintech Forecasts Visibility'
+                : 'Cost Efficiency & ROI Benchmarks',
+            gap_type: 'external_sources_opportunity',
+            priority: 'medium',
+            rationale: isMediaOrPublisher
+              ? `Key digital PR sources (TechBullion, IPS News, MetaPress) present major opportunities to amplify ${brandName} reporting and citation backlinks.`
+              : `Key AI publications (Towards Data Science, InfoQ, VentureBeat) lack verified case study citations mentioning ${brandName}.`,
+            prompts_list: selectedPrompts.slice(3, 5).map(p => p.text)
+          }
+        ]
   };
 }

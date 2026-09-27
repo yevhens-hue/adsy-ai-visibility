@@ -211,4 +211,29 @@ describe('PublisherInventoryTable', () => {
     expect(screen.getByText('techbullion.com')).toBeTruthy();
     expect(screen.queryByText('g2.com')).toBeNull();
   });
+
+  it('matches Influencer Marketing and Real Estate gaps to their respective industry publishers', () => {
+    // 1. Influencer Marketing gap should match marketing publishers and exclude real estate
+    const { unmount } = render(
+      <PublisherInventoryTable 
+        selectedGapTopic="Influencer Marketing" 
+        publishersList={SAMPLE_PUBLISHERS} 
+      />
+    );
+    expect(screen.getByText('business2community.com')).toBeTruthy();
+    expect(screen.getByText('searchenginejournal.com')).toBeTruthy();
+    expect(screen.queryByText('urbansplatter.com')).toBeNull();
+    unmount();
+
+    // 2. Real Estate gap should match real estate publishers and exclude marketing
+    render(
+      <PublisherInventoryTable 
+        selectedGapTopic="Real Estate & Architecture" 
+        publishersList={SAMPLE_PUBLISHERS} 
+      />
+    );
+    expect(screen.getByText('urbansplatter.com')).toBeTruthy();
+    expect(screen.getByText('zillow.com')).toBeTruthy();
+    expect(screen.queryByText('business2community.com')).toBeNull();
+  });
 });

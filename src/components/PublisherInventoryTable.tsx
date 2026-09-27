@@ -77,7 +77,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   {
     id: '13278',
     domain: 'techbullion.com',
-    category: 'Technology, Business & Finance',
+    category: 'Technology, Business & Emerging Fintech',
     country: 'US',
     language: 'English',
     dr: 79,
@@ -157,7 +157,7 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
   {
     id: '18368',
     domain: 'business2community.com',
-    category: 'Marketing & Digital Strategy',
+    category: 'Marketing, B2B & Digital Strategy',
     country: 'US',
     language: 'English',
     dr: 84,
@@ -172,6 +172,26 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
       relevantToGap: 'SEO Performance & Search Authority',
       aiOpportunity: 'High',
       citedInEngines: ['ChatGPT', 'Claude'],
+    },
+  },
+  {
+    id: '146186',
+    domain: 'searchenginejournal.com',
+    category: 'SEO, Search Authority & Organic Growth',
+    country: 'US',
+    language: 'English',
+    dr: 89,
+    da: 82,
+    traffic: '1,850,000',
+    completionRate: '96%',
+    pricePlacement: 689.97,
+    isInAdsy: true,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 8,
+      relevantToGap: 'SEO Performance & Search Authority',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity'],
     },
   },
   {
@@ -300,9 +320,9 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
     category: 'Real Estate, Architecture & Urban Trends',
     country: 'US',
     language: 'English',
-    dr: 68,
-    da: 54,
-    traffic: '160,000',
+    dr: 78,
+    da: 64,
+    traffic: '190,000',
     completionRate: '97%',
     pricePlacement: 68.00,
     isInAdsy: true,
@@ -312,6 +332,126 @@ export const SAMPLE_PUBLISHERS: VerifiedPublisher[] = [
       relevantToGap: 'Content Quality & Execution Guides',
       aiOpportunity: 'Medium',
       citedInEngines: [],
+    },
+  },
+  {
+    id: '150653',
+    domain: 'zillow.com',
+    category: 'Real Estate Marketplace & Housing Economics',
+    country: 'US',
+    language: 'English',
+    dr: 92,
+    da: 88,
+    traffic: '42,000,000',
+    completionRate: '95%',
+    pricePlacement: 93.00,
+    isInAdsy: true,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 6,
+      relevantToGap: 'Brand Awareness & Executive Visibility',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity'],
+    },
+  },
+  {
+    id: '120758',
+    domain: 'livepositively.com',
+    category: 'Health, Wellness, Self-Care & Motivation',
+    country: 'US',
+    language: 'English',
+    dr: 74,
+    da: 59,
+    traffic: '165,000',
+    completionRate: '97%',
+    pricePlacement: 51.00,
+    isInAdsy: true,
+    aiVisibility: {
+      seenInAi: false,
+      citationsCount: 0,
+      relevantToGap: 'Content Quality & Execution Guides',
+      aiOpportunity: 'Medium',
+      citedInEngines: [],
+    },
+  },
+  {
+    id: '9773',
+    domain: 'anationofmoms.com',
+    category: 'Parenting, Family, Home Life & Lifestyle',
+    country: 'US',
+    language: 'English',
+    dr: 71,
+    da: 55,
+    traffic: '135,000',
+    completionRate: '98%',
+    pricePlacement: 37.50,
+    isInAdsy: true,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 4,
+      relevantToGap: 'Content Quality & Execution Guides',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT'],
+    },
+  },
+  {
+    id: '86010',
+    domain: 'msn.com',
+    category: 'Global News Syndication & National Trends',
+    country: 'US',
+    language: 'English',
+    dr: 93,
+    da: 90,
+    traffic: '48,000,000',
+    completionRate: '96%',
+    pricePlacement: 239.99,
+    isInAdsy: true,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 14,
+      relevantToGap: 'Brand Awareness & Executive Visibility',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
+    },
+  },
+  {
+    id: 'pub-np-01',
+    domain: 'neilpatel.com',
+    category: 'Digital Marketing & Growth Hacking',
+    country: 'US',
+    language: 'English',
+    dr: 91,
+    da: 81,
+    traffic: '563,000',
+    completionRate: '98%',
+    pricePlacement: null,
+    isInAdsy: false,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 9,
+      relevantToGap: 'SEO Performance & Search Authority',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
+    },
+  },
+  {
+    id: 'pub-tc-01',
+    domain: 'techcrunch.com',
+    category: 'Venture Capital, Startups & Silicon Valley',
+    country: 'US',
+    language: 'English',
+    dr: 92,
+    da: 82,
+    traffic: '668,000',
+    completionRate: '98%',
+    pricePlacement: null,
+    isInAdsy: false,
+    aiVisibility: {
+      seenInAi: true,
+      citationsCount: 11,
+      relevantToGap: 'Brand Awareness & Executive Visibility',
+      aiOpportunity: 'High',
+      citedInEngines: ['ChatGPT', 'Perplexity', 'Claude'],
     },
   },
 ];
@@ -326,21 +466,49 @@ export function computeGapRelevance(pub: VerifiedPublisher, gapTopic?: string): 
   const gapField = (pub.aiVisibility?.relevantToGap || '').toLowerCase();
 
   // 1. Direct match on relevantToGap field
-  if (gapField.includes(cleanGap) || cleanGap.includes(gapField)) {
+  if (gapField && (gapField.includes(cleanGap) || cleanGap.includes(gapField))) {
     return { isMatch: true, score: 10, reason: `Targeted for ${gapTopic}` };
   }
 
   // Determine intent category of the gap
+  const isInfluencerGap = cleanGap.includes('influencer') || cleanGap.includes('creator') || cleanGap.includes('outreach') || cleanGap.includes('guest post') || cleanGap.includes('partnership');
   const isBrandGap = cleanGap.includes('brand') || cleanGap.includes('aware') || cleanGap.includes('recogni') || cleanGap.includes('prominen') || cleanGap.includes('who are') || cleanGap.includes('top guest');
   const isSeoGap = cleanGap.includes('seo') || cleanGap.includes('search') || cleanGap.includes('rank') || cleanGap.includes('backlink') || cleanGap.includes('traffic') || cleanGap.includes('performance');
   const isContentGap = cleanGap.includes('content') || cleanGap.includes('qualit') || cleanGap.includes('process') || cleanGap.includes('guide') || cleanGap.includes('measure') || cleanGap.includes('editorial');
   const isCostGap = cleanGap.includes('cost') || cleanGap.includes('roi') || cleanGap.includes('price') || cleanGap.includes('pricing') || cleanGap.includes('financial') || cleanGap.includes('budget');
+  const isRealEstateGap = cleanGap.includes('real estate') || cleanGap.includes('estate') || cleanGap.includes('architecture') || cleanGap.includes('home') || cleanGap.includes('property') || cleanGap.includes('housing');
+  const isLifestyleGap = cleanGap.includes('lifestyle') || cleanGap.includes('health') || cleanGap.includes('wellness') || cleanGap.includes('family') || cleanGap.includes('parent') || cleanGap.includes('mom');
 
-  // Check if publisher has designated specialization
-  const pubIsSeo = gapField.includes('seo') || cat.includes('seo') || dom.includes('searchenginewatch');
-  const pubIsContent = gapField.includes('content') || cat.includes('content') || dom.includes('thestartupmag') || dom.includes('contentmarketinginstitute');
+  // Check publisher profile
+  const pubIsInfluencer = cat.includes('marketing') || cat.includes('influencer') || cat.includes('strategy') || dom.includes('business2community') || dom.includes('searchenginejournal') || dom.includes('neilpatel') || dom.includes('thestartupmag') || dom.includes('anationofmoms');
+  const pubIsSeo = gapField.includes('seo') || cat.includes('seo') || cat.includes('search') || dom.includes('searchenginewatch') || dom.includes('searchenginejournal') || dom.includes('business2community') || dom.includes('neilpatel');
+  const pubIsContent = gapField.includes('content') || cat.includes('content') || dom.includes('thestartupmag') || dom.includes('contentmarketinginstitute') || dom.includes('metapress');
   const pubIsCost = gapField.includes('cost') || gapField.includes('roi') || (cat.includes('finance') && !cat.includes('business')) || dom.includes('financebuzz');
-  const pubIsBrand = gapField.includes('brand') || dom.includes('forbes') || dom.includes('venturebeat') || dom.includes('techbullion') || ((cat.includes('business') || cat.includes('leadership')) && !cat.includes('marketing'));
+  const pubIsBrand = gapField.includes('brand') || dom.includes('forbes') || dom.includes('venturebeat') || dom.includes('techbullion') || dom.includes('msn') || dom.includes('ipsnews') || ((cat.includes('business') || cat.includes('leadership')) && !cat.includes('marketing'));
+  const pubIsRealEstate = cat.includes('real estate') || cat.includes('architecture') || dom.includes('urbansplatter') || dom.includes('zillow');
+  const pubIsLifestyle = cat.includes('health') || cat.includes('wellness') || cat.includes('lifestyle') || cat.includes('family') || dom.includes('livepositively') || dom.includes('anationofmoms');
+
+  // Specific niche evaluations
+  if (isInfluencerGap) {
+    if (pubIsInfluencer || dom.includes('techbullion') || dom.includes('forbes')) {
+      return { isMatch: true, score: 9, reason: 'Influencer & Digital PR Media' };
+    }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
+  }
+
+  if (isRealEstateGap) {
+    if (pubIsRealEstate) {
+      return { isMatch: true, score: 10, reason: 'Real Estate & Architecture Media' };
+    }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
+  }
+
+  if (isLifestyleGap) {
+    if (pubIsLifestyle) {
+      return { isMatch: true, score: 10, reason: 'Lifestyle, Health & Wellness Media' };
+    }
+    return { isMatch: false, score: 0, reason: 'General Catalog Media' };
+  }
 
   if (isBrandGap) {
     if (pubIsBrand && !pubIsSeo && !pubIsContent && !pubIsCost) {
@@ -368,6 +536,13 @@ export function computeGapRelevance(pub: VerifiedPublisher, gapTopic?: string): 
       return { isMatch: true, score: 9, reason: 'Financial & ROI Benchmarks' };
     }
     return { isMatch: false, score: 0, reason: 'General Catalog Media' };
+  }
+
+  // Intersect words
+  const gapWords = cleanGap.split(/[\s,–—\-_/]+/).filter(w => w.length >= 4);
+  const matchedWord = gapWords.find(w => cat.includes(w) || dom.includes(w));
+  if (matchedWord) {
+    return { isMatch: true, score: 7, reason: `Matches Topic: ${matchedWord}` };
   }
 
   return { isMatch: false, score: 0, reason: 'General Catalog Media' };

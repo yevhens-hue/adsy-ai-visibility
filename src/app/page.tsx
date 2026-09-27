@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AdsyHeader from '@/components/AdsyHeader';
 import AdsySidebar from '@/components/AdsySidebar';
-import PublisherInventoryTable, { VerifiedPublisher, SAMPLE_PUBLISHERS, KNOWN_ADSY_CATALOG } from '@/components/PublisherInventoryTable';
+import PublisherInventoryTable, { VerifiedPublisher, SAMPLE_PUBLISHERS, KNOWN_ADSY_CATALOG, computeGapRelevance } from '@/components/PublisherInventoryTable';
+import { getPublisherCategory } from '@/lib/adsy-catalog';
 import CatalogTab from '@/components/CatalogTab';
 import HistoryTab from '@/components/HistoryTab';
 import CheckerTab from '@/components/CheckerTab';
@@ -300,10 +301,11 @@ export default function ControlPanelAIVisibilityPage() {
       const price = known?.basePrice ?? (typeof s.adsy_price === 'number' && s.adsy_price > 0 ? s.adsy_price : (inAdsy ? 240.00 : null));
 
       const hash = s.domain.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      const dr = 68 + (hash % 26);
-      const da = Math.max(50, dr - 10);
-      const traffic = `${((hash % 900) + 140).toLocaleString()},000`;
-      const completionRate = `${95 + (hash % 5)}%`;
+      const dr = known?.dr ?? (68 + (hash % 26));
+      const da = known?.da ?? Math.max(50, dr - 10);
+      const traffic = known?.traffic ?? `${((hash % 900) + 140).toLocaleString()},000`;
+      const completionRate = known?.completionRate ?? `${95 + (hash % 5)}%`;
+      const domainCategory = known?.category || getPublisherCategory(s.domain);
 
       // Match source to the specific gap where its citations were observed, or round-robin across available gaps
       let assignedGap = 'Strategic Market Visibility';
@@ -324,7 +326,7 @@ export default function ControlPanelAIVisibilityPage() {
       return {
         id: pubId,
         domain: s.domain,
-        category: `${currentRun?.brand_name || 'Technology'} AI Citations`,
+        category: domainCategory,
         country: 'US',
         language: 'English',
         dr,
@@ -348,7 +350,24 @@ export default function ControlPanelAIVisibilityPage() {
     });
 
     const existingDomains = new Set(reportPubs.map(p => p.domain.toLowerCase()));
-    const catalogAlternatives = SAMPLE_PUBLISHERS.filter(p => !existingDomains.has(p.domain.toLowerCase()));
+    const catalogAlternatives = SAMPLE_PUBLISHERS
+      .filter(p => !existingDomains.has(p.domain.toLowerCase()))
+      .map((p) => {
+        let matchedGap = p.aiVisibility?.relevantToGap || 'Strategic Market Visibility';
+        if (currentGaps && currentGaps.length > 0) {
+          const bestGap = currentGaps.find(g => computeGapRelevance(p, g.topic).isMatch);
+          if (bestGap) {
+            matchedGap = bestGap.topic;
+          }
+        }
+        return {
+          ...p,
+          aiVisibility: {
+            ...p.aiVisibility,
+            relevantToGap: matchedGap,
+          }
+        };
+      });
     return [...reportPubs, ...catalogAlternatives];
   }, [fullReport, selectedGap, currentGaps, currentRun]);
 
