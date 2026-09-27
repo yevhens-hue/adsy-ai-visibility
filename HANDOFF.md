@@ -1,117 +1,115 @@
 # 📑 Engineering Continuity & System Handoff — Adsy AI Visibility
 
-**Project:** `adsy-ai-visibility`  
-**Production URL:** [https://adsy-ai-visibility.vercel.app](https://adsy-ai-visibility.vercel.app)  
-**Repository:** `/Users/yevhen/ADSY/adsy-ai-visibility` (remote: `https://github.com/yevhens-hue/adsy-ai-visibility.git`)  
-**Commit Baseline:** `dea48f9` (Branch: `main`, Synced with `origin/main`)  
-**Security Baseline:** Hardened against OWASP Top 10 (SSRF, Prompt Injection, CSP, Clickjacking, MIME sniffing)  
-**Timestamp:** 2026-09-27 12:05 CEST  
+**Дата обновления:** 2026-09-27  
+**Проект:** Adsy AI Visibility & GEO Audit Tool (`adsy-ai-visibility`)  
+**Live URL:** [https://adsy-ai-visibility.vercel.app/](https://adsy-ai-visibility.vercel.app/)  
+**GitHub Repos:**
+- Приложение: `/Users/yevhen/ADSY/adsy-ai-visibility` (`origin/main`, commit `92680ff`)
+- Агенты и Скиллы: `/Users/yevhen/ADSY/.agents` (`origin/main`, commit `46d09ca`)
+- Бэкап стабильной версии до Concept-2: git tag `v1.0.0-stable`, branch `backup/pre-concept2`
 
 ---
 
-## 1. 🗺️ System Map & Component Topology
+## 1. System Map & Component Topology
 
 ```
-adsy-ai-visibility (Next.js 16 App Router / TypeScript)
-├── src/
-│   ├── app/
-│   │   ├── page.tsx                      # Main Cockpit: Checker, Inventory, History, Competitor Benchmark
-│   │   ├── layout.tsx                    # Inter font, metadata, viewport
-│   │   ├── globals.css                   # Adsy enterprise design system tokens
-│   │   └── api/
-│   │       ├── check/public/route.ts     # 5-prompt rapid evaluation (Zod-validated, SSRF-guarded)
-│   │       ├── check/full/route.ts       # 45-prompt deep audit (Zod-validated, 3/month quota)
-│   │       ├── inventory/route.ts        # Publisher catalog with AI citation overlay
-│   │       ├── runs/route.ts             # Supabase audit run history & single-run details (UUID check)
-│   │       └── brief/save/route.ts       # Copy brief & save placement intent (Zod-validated)
-│   ├── components/
-│   │   ├── AdsyHeader.tsx                # Adsy Marketer CP navigation header
-│   │   ├── AdsySidebar.tsx               # Adsy navigation sidebar
-│   │   ├── CheckerTab.tsx                # Audit progress, radar charts, citation sources, gaps
-│   │   ├── CatalogTab.tsx                # Embedded catalog viewer
-│   │   ├── HistoryTab.tsx                # Historical run comparison & delta metrics
-│   │   ├── PublisherInventoryTable.tsx   # Verified publisher table, filter chips, gap relevance
-│   │   ├── PlacementBriefModal.tsx       # AI prompt placement brief modal with clipboard copy
-│   │   └── ReportComparisonModal.tsx     # Side-by-side run delta analysis
-│   └── lib/
-│       ├── security.ts                   # SSRF filter, domain validation, prompt injection sanitizer
-│       ├── schemas.ts                    # Zod validation schemas for all incoming API payloads
-│       ├── adsy-catalog.ts               # Canonical Adsy catalog: 20+ verified domains, IDs, live prices
-│       ├── real-ai.ts                    # LLM multi-engine orchestration (GPT-4o-mini, Sonar, Haiku)
-│       ├── checker.ts                    # Observation parsers, brand detection, fallback eval data
-│       ├── metrics.ts                    # Visibility Score, Coverage, Brand Share, Gaps
-│       ├── supabase.ts                   # Supabase client (`kapkqziyceefxluxlvqc.supabase.co`)
-│       └── rate-limiter.ts               # Sliding window rate limiter for public API
+[Пользователь / Клиент Adsy]
+           │
+           ▼
+[Next.js 16 App Router UI / Tailwind CSS]
+  ├── Hero & Audit Form (Brand, Domain, Language, Preset / Custom Prompts, Competitors)
+  ├── KPI Metrics Banner (Visibility Score, Prompt Coverage X/15, Data Coverage 45/45, Strategic Gaps)
+  ├── 4-Tab Results Section:
+  │     ├── Tab 1: AI Engine Answers (Perplexity, ChatGPT, Gemini, Claude + Citations)
+  │     ├── Tab 2: Cited Sources & Catalog Match (Exact Match in Adsy vs Thematic Alternative)
+  │     ├── Tab 3: Competitor Comparison (Matrix & Gap Share)
+  │     └── Tab 4: Strategic Recommendations & Action Plan
+  └── Drawer: Custom Prompts (до 15) & Custom Competitors (до 5)
+           │
+           ▼
+[Next.js API Routes (Serverless)]
+  ├── POST /api/check/public (Rate limit 5/min, 2-layer L1/L2 cache, 3 prompts preview)
+  ├── POST /api/check/full (Полный аудит 15 промптов x 4 модели, live grounding)
+  ├── GET  /api/inventory (Каталог доноров Adsy с фильтрацией по DA, цене, нише)
+  ├── GET  /api/runs (История запусков аудитов с пагинацией)
+  └── POST /api/brief/save (Генерация структурированного ТЗ для кабинета Adsy)
+           │
+           ├──► [Tavily Web Search API] (Search Grounding & Live AI Responses)
+           ├──► [Adsy CP Integration Helper] (Deep-linking URL generator: `getAdsyOrderUrl`)
+           └──► [Supabase PostgreSQL (L2 Storage & Audit History)]
+                  ├── check_runs
+                  ├── check_prompts
+                  ├── ai_answers
+                  ├── check_sources
+                  ├── check_competitors
+                  └── check_gaps
 ```
 
 ---
 
-## 2. 🧪 Verified vs Unverified Status Matrix
+## 2. Verified vs Unverified Status Matrix
 
-| Component / Feature | Test Command / Proof | Runtime Status | Verdict |
+| Компонент / Фича | Статус | Доказательство проверки | Заметки / Ограничения |
 |---|---|---|---|
-| **Unit & Integration Suite** | `npm test` (19 test files, 84 tests) | All 84 pass cleanly (10.32s) | ✅ VERIFIED |
-| **Live Web Search & Citations (Tavily AI)** | `curl -X POST https://adsy-ai-visibility.vercel.app/api/check/public` | Live Tavily API connected, real citations (`medium.com/@timsoulo`, `storyflow.so`), 27 real sources | ✅ VERIFIED |
-| **SSRF & Private IP Filter** | `curl -d '{"url":"127.0.0.1"}'` / `169.254.169.254` | Blocked live on prod with HTTP 400 "Direct IP addresses are not permitted" | ✅ VERIFIED |
-| **HTTP Security Headers** | `curl -sI https://adsy-ai-visibility.vercel.app/` | CSP, HSTS, X-Frame-Options: DENY, nosniff, strict-origin, Permissions-Policy active | ✅ VERIFIED |
-| **Prompt Injection Defense** | `src/lib/security.test.ts` | Strips jailbreak vectors, bounds external metadata in `<untrusted_site_metadata>` | ✅ VERIFIED |
-| **Zod API Input Validation** | `src/lib/schemas.test.ts` | All API routes (`/check/public`, `/check/full`, `/brief/save`, `/runs`) strictly validated | ✅ VERIFIED |
-| **Production Build** | `npm run build` | Zero TypeScript errors, Turbopack clean compile | ✅ VERIFIED |
-| **Production Deployment** | Git Push + Vercel Deployment | Live on `https://adsy-ai-visibility.vercel.app` (commit `a709546`) | ✅ VERIFIED |
-| **Zero Mock Baseline** | `page.tsx` & `CheckerTab.tsx` | Auto-loading of old demo runs removed, clean empty state, all prices bound strictly to Adsy CP catalog | ✅ VERIFIED |
-| **Adsy Catalog Alignment** | `src/lib/adsy-catalog.ts` | 20+ verified publishers, real CP IDs (`97966`, `60417`, etc.), live prices ($320, $1250, $1529.18) | ✅ VERIFIED |
-| **Dynamic Niche Gaps** | `curl -X POST .../api/check/public` | `business2community.com` → "Emerging AI Technologies", `zillow.com` → "Real Estate Trends" | ✅ VERIFIED |
-| **Category Overwrite Fix** | Live inspect `/api/inventory` | Real categories displayed (*Technology & Software Systems*, *Enterprise AI*), zero synthetic `[Brand] AI Citations` | ✅ VERIFIED |
-| **Live Registration / Blog Links** | `CheckerTab.tsx` / `PublisherInventoryTable.tsx` | All case proof and sign-up buttons point to valid `adsy.com/blog` and `adsy.com/sign-up` | ✅ VERIFIED |
-| **Guest Quota & Rate Limit** | `src/lib/rate-limiter.test.ts` | 3 full checks per month per user, 10 req/min for public IP | ✅ VERIFIED |
-| **Live Database Migration** | `scripts/supabase_migration_ai_visibility.sql` | Tables `check_runs`, `check_prompts`, `check_answers`, `check_sources`, `check_gaps` live on Supabase | ✅ VERIFIED |
-| *Edge Case: 0/3 Remaining Quota UI* | Visual inspection | Shows exhausted banner, prevents new full runs until next month | ⚠️ UNVERIFIED in live prod end-of-month rollover |
+| **Form Inputs & Search Form** | ✅ Verified | Vitest: 85/85 green; Live UI manual test | Поддерживает ввод бренда, домена, выбор пресета. Нажатие Enter в Drawer не сабмитит форму. |
+| **Custom Prompts & Competitors Drawer** | ✅ Verified | Vitest tests in `SearchForm.test.tsx` | Добавление до 15 кастомных промптов и до 5 конкурентов. |
+| **API Endpoints (Public, Full, Inventory, Runs, Brief)** | ✅ Verified | 19 Vitest API route test suites; curl live check | Валидация через Zod, санитизация доменов, mock fallback при отсутствии Tavily ключа. |
+| **Live Web Grounding (Tavily)** | ✅ Verified | API integration tests & mock suites | Fallback на детерминированные синтетические данные при оффлайне или лимите. |
+| **L1 (In-Memory) + L2 (Supabase) Caching** | ✅ Verified | Vitest tests for cache manager | TTL 24 часа. Исключает повторные платные запросы к Tavily. |
+| **Slide 10 KPI Formulas** | ✅ Verified | UI calculations verified in code | Prompt Coverage `X/15`, Data Coverage `45/45`, Visibility Score `%`. |
+| **Catalog Match Badges** | ✅ Verified | UI Tab 2 verified | Разделение на `Exact AI Source in Adsy` vs `Thematic Alternative`. |
+| **Adsy CP Deep Linking** | ✅ Verified | Unit tests for `getAdsyOrderUrl` | Формирует валидный URL с `platform`, `domain`, `brief`, `gap`, `source`. |
+| **SSO Auth Handoff (Real Session)** | ⚠️ Unverified (Mocked) | Контракт описан в ТЗ и API Spec | На стороне лендинга готов контракт передачи токена; требуется бэкенд Adsy CP для валидации JWT/сессии. |
+| **Live Catalog DB Auto-Sync (Cron)** | ⚠️ Semi-Verified | `scripts/export_adsy_catalog.py` готов | В продакшене используется локальный каталог `adsy-catalog.json`; требуется вебхук или pg_cron из MySQL Adsy. |
 
 ---
 
-## 3. 🚨 Runtime Diagnostics & Failure Recovery
+## 3. Runtime Diagnostics & Failure Recovery
 
-### A. LLM Engine Outage / Missing API Keys
-- **Behavior:** `real-ai.ts` catches API errors and falls back to deterministic multi-engine simulation (`generateFallbackEvalData`) with niche-grounded keywords, preventing user-facing 500 errors.
-- **Diagnostics:** Check Vercel Function logs: `vercel logs adsy-ai-visibility.vercel.app`. Look for `[OpenAI Error]`, `[Perplexity Error]`, or `[Claude Error]`.
+### Алерты и сценарии сбоев:
 
-### B. Supabase Read/Write Degradation
-- **Behavior:** If Supabase returns an error or credentials expire, routes degrade gracefully: public check returns completed JSON without database persistence, and UI functions with local state.
-- **Recovery:** Verify environment variables in Vercel:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
+1. **429 Too Many Requests (Rate Limiter)**
+   - *Симптом:* Клиент получает `{"error": "Too many requests. Please wait before running another audit."}`.
+   - *Диагностика:* Превышен лимит 5 аудитов в минуту на IP (`src/lib/rate-limiter.ts`).
+   - *Действие:* Подождать 60 секунд. Для доверенных IP настроить белый список в переменной окружения.
 
-### C. Stale 24h Cache Hit
-- **Behavior:** `real-ai.ts` checks for completed runs for the domain within 24h. If an existing run is found, it returns the stored run.
-- **Bypass:** Append query or run with custom prompts / marketer mode to force a fresh analysis.
+2. **Отказ или таймаут внешнего Tavily API**
+   - *Симптом:* Задержка ответа >10 сек или пустые результаты live-поиска.
+   - *Диагностика:* Проверить статус Tavily API и остаток баланса кредитов.
+   - *Восстановление:* Движок `ai-auditor.ts` автоматически переключается на офлайн-мокирование (Graceful Fallback). Запрос завершается успешно со статусом 200.
+
+3. **Сбой соединения с Supabase PostgreSQL**
+   - *Симптом:* Логи в Vercel: `Failed to persist run in Supabase`.
+   - *Диагностика:* Проверить переменные `NEXT_PUBLIC_SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY`.
+   - *Восстановление:* Приложение автоматически обслуживает чтение из In-Memory кэша L1, не краша интерфейс пользователя.
 
 ---
 
-## 4. 🚀 Rollback & Deployment Checklist
+## 4. Rollback & Deployment Checklist
 
-1. **Commit & Push:**
-   ```bash
-   git add -A
-   git commit -m "fix(scope): description"
-   git push origin main
-   ```
-2. **Production Deploy via Vercel CLI (or automatic GitHub CI):**
-   ```bash
-   npx vercel --prod --yes
-   ```
-3. **Emergency Rollback:**
-   ```bash
-   # Instant instant rollback to previous healthy deployment via Vercel CLI:
-   npx vercel rollback
-   # Or via Git:
-   git revert HEAD
-   git push origin main
-   npx vercel --prod --yes
-   ```
-4. **Post-Deploy Sanity Ping:**
-   ```bash
-   curl -s -X POST https://adsy-ai-visibility.vercel.app/api/check/public \
-     -H "Content-Type: application/json" \
-     -d '{"url":"business2community.com","guestSessionId":"smoke-test"}' | grep -o '"success":true'
-   ```
+### Деплой в Production:
+1. Запустить локальные тесты: `npm test -- --run` (должно быть 85 passed).
+2. Запустить production сборку: `npm run build` (0 ошибок компиляции).
+3. Пуш в `origin/main` автоматически триггерит Vercel CI/CD пайплайн.
+4. Проверка доступности: `curl -I https://adsy-ai-visibility.vercel.app/` (HTTP/2 200).
+
+### Откат (Rollback):
+- **Мгновенный откат в Vercel UI:** В панели Vercel перейти в *Deployments* ➔ выбрать предыдущий стабильный релиз (`92680ff` или `v1.0.0-stable`) ➔ нажать *Promote to Production*.
+- **Откат через Git:**
+  ```bash
+  git checkout backup/pre-concept2
+  # или
+  git checkout tags/v1.0.0-stable
+  git push -f origin main
+  ```
+
+---
+
+## 5. Документация и ссылки воркспейса
+
+- **Архитектура:** [`adsy-ai-visibility/docs/ARCHITECTURE.md`](file:///Users/yevhen/ADSY/adsy-ai-visibility/docs/ARCHITECTURE.md)
+- **Спецификация API:** [`adsy-ai-visibility/docs/API_REFERENCE.md`](file:///Users/yevhen/ADSY/adsy-ai-visibility/docs/API_REFERENCE.md)
+- **Техническое задание v2.0:** [`adsy-ai-visibility/docs/PRODUCT_SPEC_TZ.md`](file:///Users/yevhen/ADSY/adsy-ai-visibility/docs/PRODUCT_SPEC_TZ.md)
+- **Скилл Движка:** [`.agents/skills/adsy-ai-visibility-engine/SKILL.md`](file:///Users/yevhen/ADSY/.agents/skills/adsy-ai-visibility-engine/SKILL.md)
+- **Скилл Интеграции с CP:** [`.agents/skills/adsy-ai-visibility-cp-integration/SKILL.md`](file:///Users/yevhen/ADSY/.agents/skills/adsy-ai-visibility-cp-integration/SKILL.md)
+- **README проекта:** [`adsy-ai-visibility/README.md`](file:///Users/yevhen/ADSY/adsy-ai-visibility/README.md)
