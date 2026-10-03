@@ -107,9 +107,54 @@ export function checkRateLimit(
   activeTimestamps.push(now);
   rateLimitStore.set(identifier, { timestamps: activeTimestamps });
 
+  // Auto-prune stale keys if store grows large to prevent memory leaks
+  if (rateLimitStore.size > 1000) {
+    cleanupStaleRateLimits(now - windowMs);
+  }
+
   return {
     allowed: true,
     remaining: options.maxRequests - activeTimestamps.length,
     resetInSeconds: options.windowSeconds,
   };
 }
+
+/**
+ * Removes identifiers whose latest request timestamp is older than the cutoff.
+ */
+export function cleanupStaleRateLimits(cutoffTimestamp?: number): number {
+  const cutoff = cutoffTimestamp ?? (Date.now() - 60000);
+  let removedCount = 0;
+  for (const [key, record] of rateLimitStore.entries()) {
+    if (!record.timestamps.length || record.timestamps[record.timestamps.length - 1] <= cutoff) {
+      rateLimitStore.delete(key);
+      removedCount++;
+    }
+  }
+  return removedCount;
+}
+
+export function getRateLimitStoreSize(): number {
+  return rateLimitStore.size;
+}
+
+/**
+ * Generates RFC-compliant HTTP RateLimit headers.
+ */
+export function getRateLimitHeaders(
+  result: RateLimitResult,
+  options: RateLimitOptions
+): Record<string, string> {
+  const headers: Record<string, string> = {
+    'X-RateLimit-Limit': String(options.maxRequests),
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(Math.floor(Date.now() / 1000) + result.resetInSeconds),
+  };
+
+  if (!result.allowed) {
+    headers['Retry-After'] = String(result.resetInSeconds);
+  }
+
+  return headers;
+}
+

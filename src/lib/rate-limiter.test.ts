@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { checkRateLimit, resetRateLimiter, getClientIp, checkMonthlyQuota } from './rate-limiter';
+import { 
+  checkRateLimit, 
+  resetRateLimiter, 
+  getClientIp, 
+  checkMonthlyQuota,
+  getRateLimitHeaders,
+  cleanupStaleRateLimits,
+  getRateLimitStoreSize
+} from './rate-limiter';
 import { NextRequest } from 'next/server';
 
 describe('rate-limiter', () => {
@@ -53,4 +61,37 @@ describe('rate-limiter', () => {
     expect(q4.allowed).toBe(false);
     expect(q4.remaining).toBe(0);
   });
+
+  it('generates standard RFC compliant rate limit headers', () => {
+    const res = checkRateLimit('header-test', { maxRequests: 5, windowSeconds: 60 });
+    const headers = getRateLimitHeaders(res, { maxRequests: 5, windowSeconds: 60 });
+
+    expect(headers['X-RateLimit-Limit']).toBe('5');
+    expect(headers['X-RateLimit-Remaining']).toBe('4');
+    expect(headers['X-RateLimit-Reset']).toBeDefined();
+    expect(headers['Retry-After']).toBeUndefined();
+
+    // Trigger limit breach (maxRequests: 5, so 5th is allowed, 6th is blocked)
+    checkRateLimit('header-test', { maxRequests: 5, windowSeconds: 60 });
+    checkRateLimit('header-test', { maxRequests: 5, windowSeconds: 60 });
+    checkRateLimit('header-test', { maxRequests: 5, windowSeconds: 60 });
+    checkRateLimit('header-test', { maxRequests: 5, windowSeconds: 60 });
+    const blockedRes = checkRateLimit('header-test', { maxRequests: 5, windowSeconds: 60 });
+    expect(blockedRes.allowed).toBe(false);
+    const blockedHeaders = getRateLimitHeaders(blockedRes, { maxRequests: 5, windowSeconds: 60 });
+
+    expect(blockedHeaders['X-RateLimit-Limit']).toBe('5');
+    expect(blockedHeaders['X-RateLimit-Remaining']).toBe('0');
+    expect(blockedHeaders['Retry-After']).toBe(String(blockedRes.resetInSeconds));
+  });
+
+  it('cleans up stale keys to prevent memory leaks', () => {
+    checkRateLimit('stale-ip-1', { maxRequests: 2, windowSeconds: 60 });
+    expect(getRateLimitStoreSize()).toBe(1);
+
+    // Call cleanup with future cutoff
+    cleanupStaleRateLimits(Date.now() + 70000);
+    expect(getRateLimitStoreSize()).toBe(0);
+  });
 });
+

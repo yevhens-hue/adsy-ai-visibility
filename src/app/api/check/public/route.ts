@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRealAIAnalysis } from '@/lib/real-ai';
-import { checkRateLimit, checkMonthlyQuota, getClientIp } from '@/lib/rate-limiter';
+import { checkRateLimit, checkMonthlyQuota, getClientIp, getRateLimitHeaders } from '@/lib/rate-limiter';
 import { PublicCheckSchema } from '@/lib/schemas';
+
+const PUBLIC_RATE_OPTIONS = { maxRequests: 20, windowSeconds: 60 };
 
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
-    const rateCheck = checkRateLimit(`pub-${ip}`, { maxRequests: 20, windowSeconds: 60 });
+    const rateCheck = checkRateLimit(`pub-${ip}`, PUBLIC_RATE_OPTIONS);
     if (!rateCheck.allowed) {
       return NextResponse.json(
         { 
@@ -15,7 +17,7 @@ export async function POST(req: NextRequest) {
         },
         { 
           status: 429,
-          headers: { 'Retry-After': String(rateCheck.resetInSeconds) }
+          headers: getRateLimitHeaders(rateCheck, PUBLIC_RATE_OPTIONS)
         }
       );
     }
