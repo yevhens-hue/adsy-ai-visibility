@@ -445,10 +445,11 @@ ${customCStr}`;
         }
       }
 
-      // 2. Try OpenAI gpt-4o-mini if evalData is still null and apiKey is present
+      // 2. Try OpenAI gpt-4o-mini if evalData is still null and apiKey is present (Ultrafast latency tuned)
       if (!evalData && apiKey) {
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
+          signal: AbortSignal.timeout(8000),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
@@ -458,6 +459,7 @@ ${customCStr}`;
             messages: [{ role: 'user', content: systemPrompt }],
             response_format: { type: 'json_object' },
             temperature: 0.1,
+            max_completion_tokens: 1800,
             seed: Math.abs(domain.split('').reduce((acc, c) => acc + c.charCodeAt(0), 42)),
           }),
         });
